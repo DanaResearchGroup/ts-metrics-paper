@@ -1,0 +1,38 @@
+# Whitelist repo: ignore EVERYTHING by default, then allow only the paper
+# materials. This keeps datasets, cluster jobs, ML checkpoints, conda envs and
+# analysis code out of the repo — a plain `git add .` can only ever stage the
+# paper. To add more files, add matching `!` un-ignore rules below.
+
+# 1) ignore every top-level entry
+/*
+
+# 2) keep this file and the paper README
+!.gitignore
+!README.md
+
+# 3) keep the manuscript source + build in docs/
+!/docs
+docs/*
+!docs/paper.tex
+!docs/refs.bib
+!docs/paper.pdf
+
+# 4) keep only the six figures the paper actually references
+!/bench
+bench/*
+!bench/plots
+bench/plots/*
+!bench/plots/auc_ceiling.png
+!bench/plots/blind_spots.png
+!bench/plots/generalisation.png
+!bench/plots/generative.png
+!bench/plots/ladder.png
+!bench/plots/raincloud_by_outcome.png
+
+# LaTeX build cruft (belt-and-suspenders; step 3 already excludes it)
+docs/*.aux
+docs/*.log
+docs/*.bbl
+docs/*.blg
+docs/*.out
+docs/*.synctex.gz
