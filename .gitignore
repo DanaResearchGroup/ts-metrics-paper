@@ -10,6 +10,9 @@
 !.gitignore
 !README.md
 
+# review artifact (2026-07-26 manuscript review)
+!REVIEW_2026-07-26.md
+
 # 3) keep the manuscript source + build in docs/
 !/docs
 docs/*
