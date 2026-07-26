@@ -46,7 +46,7 @@ potential-energy surface (PES) - competing saddles and basins - which a
 Cartesian distance cannot see. A controlled experiment identifies the cause.
 Displacing each reference saddle by a \emph{prescribed} distance along different
 directions - the reaction mode, the softest and stiffest vibrations, and
-isotropic noise - changes the probability of recovering it from $22\%$ to $98\%$
+isotropic noise - changes the probability of recovering it from $33\%$ to $98\%$
 at identical distance, so distance alone cannot determine the outcome; yet once
 direction is held fixed as well, the ceiling persists at AUC $\approx 0.83$. The
 saturation is therefore a limit on what a guess geometry can express, not a
@@ -113,7 +113,7 @@ receiver-operating-characteristic curve $0.77$--$0.84$, and a purpose-built
 motion-weighted measure sits at the top of it. (2)~A controlled experiment, in
 which reference saddles are displaced by a fixed distance along chosen normal
 modes, shows this is not a defect of the measures but an information ceiling: at
-identical distance the outcome swings from $22\%$ to $98\%$ with the
+identical distance the outcome swings from $33\%$ to $98\%$ with the
 \emph{direction} of displacement, and even with direction fixed the ceiling
 persists --- because reactions differ irreducibly in the size of the basin around
 their saddle, which no guess geometry encodes. (3)~A large share of apparent
@@ -133,10 +133,15 @@ We use the Transition1x database~\cite{Schreiner2022} of reactant, product and
 transition-state geometries (originally at the $\omega$B97x/6-31G(d) level). To
 obtain an internally consistent reference at our working level, we re-optimize
 each Transition1x transition state at the r$^2$SCAN-3c composite DFT
-level~\cite{Grimme2021} (ORCA~6.0.0~\cite{Neese2025}); $199/200$ converge, all
-with exactly one imaginary vibrational frequency, confirming genuine first-order
-saddle points. Reactants and products are likewise optimized at r$^2$SCAN-3c to
-define the minima used for connectivity.
+level~\cite{Grimme2021} (ORCA~6.0.0~\cite{Neese2025}). The set comprises $260$
+reactions ($520$ guesses); $259/260$ reference saddles converge, all with exactly
+one imaginary vibrational frequency, confirming genuine first-order saddle points.
+Reactants and products are likewise optimized at r$^2$SCAN-3c to
+define the minima used for connectivity. Areas under the curve
+(Tables~\ref{tab:weights} and~\ref{tab:auc}, Figure~\ref{fig:ceiling}) are reported
+on the $200$-reaction batch ($400$ guesses) for which the complete descriptor set,
+including the GFN2-xTB features, was computed; the alternative-saddle census
+(Section~\ref{sec:alt}) uses all $260$ reactions ($520$ guesses).
 
 To test generalization beyond first-row organic chemistry, we repeat the whole
 protocol on a second database, Reaction-QM~\cite{ReactionQM2026}. We use only its
@@ -285,7 +290,7 @@ displacement $\lvert r^{P}-r^{R}\rvert$ (parameter-free) & \textbf{0.839} \\
 \end{tabular}
 \caption{Continuous, reaction-zone-focused atom weights make RMSD a better
 convergence predictor than either the global or the reactive-atom-only form
-($n=520$).}
+($n=400$).}
 \label{tab:weights}
 \end{table}
 
@@ -325,7 +330,8 @@ whether a particular guess lies in a saddle basin, and so cannot exceed the
 guess-based ceiling.
 
 Crucially, the limit is not an artifact of choosing a single metric. A random
-forest over all eight geometric measures (including the weighted variants above)
+forest over all eight geometric measures (the five geometric rows of
+Table~\ref{tab:auc} and the three weighted variants of Table~\ref{tab:weights})
 reaches AUC $0.829$, no higher than the single displacement-weighted RMSD, and
 adding the deployable xTB force does not improve on it either. Every guess-based
 measure we tried - geometric or semi-empirical, single or ensembled, oracle or
@@ -338,7 +344,7 @@ potential-energy surface, not by the prediction.
 \centering
 \includegraphics[width=0.82\textwidth]{../bench/plots/auc_ceiling.png}
 \caption{No guess-based measure predicts optimization convergence beyond
-AUC $\approx 0.84$ ($n=520$). Oracle measures (blue) require the reference
+AUC $\approx 0.84$ ($n=400$). Oracle measures (blue) require the reference
 transition state; deployable descriptors (green) require only the guess and the
 reactant/product; the random-forest ensemble (red) combines all eight geometric
 measures. None exceeds the single displacement-weighted RMSD.}
@@ -460,7 +466,7 @@ A trial ``returns'' if the search converges to the same saddle within $0.3$~\AA.
 \caption{Controlled displacement from the reference saddle ($187$ and $186$
 reactions, ${\sim}3\,200$ trials per database). Every point at a given abscissa
 sits at an \emph{identical} distance from the saddle --- verified to
-$10^{-5}$~\AA\ for every trial --- so the vertical spread is due to direction
+$10^{-3}$~\AA\ for every trial --- so the vertical spread is due to direction
 alone. Error bars are binomial standard errors.}
 \label{fig:ladder}
 \end{figure}
@@ -473,7 +479,7 @@ $3$ degrees of freedom, $p<10^{-16}$ throughout, reaching $p=6\times10^{-36}$).
 The ordering is physically sensible and identical across the two databases: the
 reaction mode is the unstable direction and leaves the basin fastest, while the
 softest vibration is the most forgiving. \emph{Cartesian distance therefore
-cannot determine the outcome, because outcomes spanning $22\%$ to $98\%$ share
+cannot determine the outcome, because outcomes spanning $33\%$ to $98\%$ share
 the same distance.}
 
 Controlling direction as well recovers part, but only part, of the lost
@@ -533,10 +539,10 @@ reactions. To test whether they are an artifact of that chemistry, we repeated t
 entire protocol on $200$ unimolecular reactions drawn from the density-functional
 subset of Reaction-QM~\cite{ReactionQM2026}, which extends to second- and
 third-row elements (Si, P, S, Cl) and larger systems. Reference saddles behave as
-before ($197/200$ converged, $198/200$ with exactly one imaginary frequency), so
+before ($197/200$ converged, all with exactly one imaginary frequency), so
 the comparison is not confounded by a poor reference.
 
-Three things change, and one does not. First, the predictors degrade sharply
+Three things change, and one does not (Figure~\ref{fig:generalization}). First, the predictors degrade sharply
 out of distribution: the median guess deviation rises from $0.35$~\AA\ to
 $1.02$~\AA, and only $2$ of $400$ guesses fall below $0.3$~\AA\ (against $155$ of
 $400$ on Transition1x). Second, downstream success collapses from $54\%$ to
@@ -682,8 +688,8 @@ stepwise elementary steps, or saddles of different reactions. This is itself a
 finding: for open-shell reaction networks, even the seemingly simple question
 ``did the guess find the intended reaction?'' is not answerable by current
 automated structure perception, and a robust, perception-independent connectivity
-criterion is an open problem. What we can state solidly (Section~\ref{sec:irc}
-notwithstanding) rests on energetics alone: the alternative saddles exist, are
+criterion is an open problem. What we can state solidly, the foregoing
+notwithstanding, rests on energetics alone: the alternative saddles exist, are
 usually lower in energy, and are penalized by a reference-matching metric.
 
 \begin{figure}[t]
@@ -711,7 +717,7 @@ notions coincide only when the reference is the unique relevant saddle, which we
 find fails roughly a third of the time.
 
 \paragraph{Reference databases are energetically skewed.}
-Interpolation guesses routinely optimize to lower-energy saddles ($74\%$ of the
+Interpolation guesses routinely optimize to lower-energy saddles ($77\%$ of the
 alternative-saddle cases) absent from Transition1x. A geometrically ``wrong''
 prediction frequently reaches a more stable transition state. Benchmarking
 against a single reference rewards a model for reproducing the database's
@@ -726,7 +732,7 @@ given guess it walks to whichever saddle the local curvature indicates, which ne
 not be the closest in RMSD nor the reference. This is why no function of the guess
 geometry predicts convergence beyond AUC $\approx 0.84$: the outcome is fixed by
 the surface, not the guess. Our controlled-displacement experiment makes this
-concrete --- direction at fixed distance swings the outcome from $22\%$ to $98\%$,
+concrete --- direction at fixed distance swings the outcome from $33\%$ to $98\%$,
 and even the direction-controlled ceiling matches the best real metric --- so the
 saturation is an information limit, not a modeling artifact.
 
@@ -758,7 +764,7 @@ predicted geometry is useful: every geometry metric saturates in a narrow band
 below AUC $0.84$,
 and a large share of apparent failures are lower-energy saddles the reference
 database omits and the metric penalizes. A controlled experiment locates the
-cause. At a fixed distance from the saddle the outcome varies from $22\%$ to
+cause. At a fixed distance from the saddle the outcome varies from $33\%$ to
 $98\%$ depending only on the direction of displacement, so distance cannot
 determine convergence; yet once direction is \emph{also} controlled the ceiling
 persists at AUC $\approx 0.83$, and the effect reproduces at r$^2$SCAN-3c. The
