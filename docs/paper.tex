@@ -294,6 +294,36 @@ random forest~\cite{Breiman2001} trained on purely deployable features (GFN2-xTB
 force and energy plus reactant/product geometry, with no reference TS) reaches
 AUC $0.791$ - matching oracle RMSD without ever seeing the answer.
 
+The limit is also not an artifact of the coordinate \emph{system}. Repeating the
+analysis in redundant internal coordinates --- the representation the optimizer
+itself uses --- does not help: a reaction-change-weighted deviation over all
+bonds, angles and dihedrals (each expressed as an equivalent atomic displacement)
+reaches only AUC $0.59$, because the many soft, periodic dihedral coordinates
+flood the metric; restricted to bonds and angles it recovers to $0.74$, still
+below Cartesian RMSD. Weighting the coordinate types by the optimizer's own
+default initial-Hessian stiffnesses ($0.5$, $0.2$, $0.1$ for stretches, bends and
+torsions) as a harmonic-energy metric does not help either ($0.61$): dihedrals are
+downweighted per coordinate but far outnumber the bonds, so their summed
+contribution still dominates. The result is unchanged when the metric is built on ORCA's \emph{exact} redundant
+internal coordinates, parsed from the optimization logs rather than reconstructed
+($0.60$ against $0.59$ for our bond-graph set). Added to the displacement-weighted
+RMSD, internal-coordinate deviations raise the cross-validated area under the curve
+from $0.839$ to $0.844$, within the fold-to-fold noise ($\pm 0.02$). Internal
+coordinates --- even the optimizer's own DOFs, weighting, and representation ---
+thus carry no convergence information the Cartesian metric lacks.
+
+Nor is the limit specific to \emph{geometric} information. An electronic
+descriptor --- the deviation of the guess's Mayer bond orders from the reference,
+read from the same DFT output --- reaches AUC $0.70$ and, added to the
+displacement-weighted RMSD, again raises the cross-validated area under the curve
+only within noise ($0.839$ to $0.844$). Reaction-level features computed from the
+reactant and product alone (their geometric separation, reaction energy, and
+total bond reorganization) predict convergence more weakly still (best single
+feature, the $R{\to}P$ displacement, AUC $0.70$); the reaction energy is
+uninformative ($0.46$). These describe how demanding a reaction is on average, not
+whether a particular guess lies in a saddle basin, and so cannot exceed the
+guess-based ceiling.
+
 Crucially, the limit is not an artifact of choosing a single metric. A random
 forest over all eight geometric measures (including the weighted variants above)
 reaches AUC $0.829$, no higher than the single displacement-weighted RMSD, and
