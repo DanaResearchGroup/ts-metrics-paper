@@ -87,6 +87,19 @@ transition state - the root-mean-square deviation (RMSD) of atomic coordinates
 after optimal superposition, or the mean absolute error of the
 interatomic-distance matrix (D-MAE).
 
+This is beginning to change, and our aim is to formalize the shift. A growing
+number of these models now report, alongside geometric error, the physically
+meaningful outcome of optimizing the predicted saddle at a quantum-chemical level:
+TSDiff~\cite{TSDiff}, the machine-learning approach of Choi and
+co-workers~\cite{Choi2023}, and the flow-matching model GoFlow~\cite{GoFlow} each
+quote a downstream saddle-optimization or recovery rate in addition to RMSD.
+Tellingly, TSDiff already observed that its samples include genuine transition
+states with barriers \emph{lower} than the reference database~\cite{TSDiff} ---
+scored there as deviations, but precisely the phenomenon we quantify in
+Section~\ref{sec:alt}. What the field has not established is whether geometric
+similarity is merely an incomplete surrogate or a fundamentally \emph{bounded}
+one, and what a downstream criterion must therefore measure. We address both.
+
 The reason the field defaults to these Cartesian measures is practical rather
 than principled: the physically correct test of a predicted transition state -
 optimizing it to a first-order saddle and verifying, via an intrinsic reaction
@@ -100,6 +113,16 @@ an assumption that, to our knowledge, has never been tested directly: that a low
 similarity to the reference implies a more \emph{useful} guess, i.e.\ one more
 likely to converge, under a standard saddle-point optimizer, to a valid
 transition state.
+
+An analogous reckoning has already taken place in structure-based drug design,
+where similarity to a single crystallographic pose was long the standard
+benchmark. The PoseBusters analysis showed that deep-learning docking methods
+tuned to minimize pose RMSD routinely generate physically invalid
+geometries~\cite{PoseBusters}, and the CASF benchmarks established a distinction we
+return to throughout: a model's \emph{sampling power} --- placing a good candidate
+somewhere among its outputs --- is separate from its \emph{scoring power} ---
+ranking that candidate first without access to the answer~\cite{Wang2016,CASF2016}.
+Transition-state prediction, we will show, is subject to the identical split.
 
 We test that assumption. We take deliberately simple, geometry-only predictors,
 optimize their guesses at a consistent density-functional-theory (DFT) level, and
@@ -193,8 +216,8 @@ rescaling.
 To test whether the saturation of the metrics is a property of the metrics or of
 the surface, we construct guesses whose deviation is fixed by design rather than
 observed. Each reference saddle is relaxed to a GFN2-xTB~\cite{Bannwarth2019}
-saddle with the Sella optimizer, and the Hessian is computed there by finite
-differences. Displacement directions are taken as the imaginary mode, the softest
+saddle with the Sella optimizer~\cite{Hermes2022}, and the Hessian is computed
+there by finite differences. Displacement directions are taken as the imaginary mode, the softest
 and stiffest internal vibrations, and an isotropic Gaussian vector. Because
 Kabsch alignment removes rigid-body motion, the six translation/rotation modes are
 projected out of every direction before use --- without this, a mode dominated by
@@ -406,14 +429,22 @@ instance, was observed to sample transition states with \emph{lower} barrier
 heights than the reference database~\cite{TSDiff}, which its RMSD-based evaluation
 scores as deviations rather than discoveries.
 
-The magnitude matters kinetically. A median discrepancy of $1.36$~eV
-($\approx 31$~kcal\,mol$^{-1}$) in barrier height translates, through the Eyring
-equation~\cite{Eyring1935}, into a factor of $\exp(\Delta E / k_\mathrm{B}T)
-\approx 10^{23}$ in the predicted rate constant at $298$~K. A benchmark that
-treats these saddles as errors is thus not penalizing a small geometric slip; it
-is discarding transition states whose barriers differ from the reference by tens
-of orders of magnitude in rate - a catastrophic outcome for any downstream
-kinetic model, and precisely the regime where getting the \emph{right} saddle,
+The magnitude matters kinetically. By transition-state theory~\cite{Eyring1935}
+the rate constant is $k = (k_\mathrm{B}T/h)\,\exp(-\Delta G^\ddagger/RT)$, so a
+median discrepancy of $1.36$~eV ($\approx 31$~kcal\,mol$^{-1}$) in barrier height
+maps to a factor of $\exp(\Delta E / k_\mathrm{B}T) \approx 10^{23}$ in the rate
+constant at $298$~K. The estimate rests on two assumptions we state plainly. It
+equates the electronic barrier difference $\Delta E$ with a free-energy difference
+$\Delta G^\ddagger$, neglecting differential entropic and zero-point
+contributions; and, more importantly, it presumes the two saddles belong to the
+\emph{same} reaction, so that the pre-exponential factor $k_\mathrm{B}T/h$
+cancels~\cite{AnslynDougherty2006}. Where an alternative saddle is instead a step
+of a \emph{different} mechanism, the comparison is between rates of different
+reactions and the prefactors need not cancel. Even then, a barrier gap of this
+size dwarfs any plausible prefactor variation of a few orders of magnitude: a
+benchmark that treats these saddles as errors is not penalizing a small geometric
+slip but discarding transition states whose barriers differ by tens of orders of
+magnitude in rate --- precisely the regime where getting the \emph{right} saddle,
 rather than one close in RMSD, is decisive.
 
 \subsection{Convergence is a potential-energy-surface property}
@@ -478,7 +509,11 @@ is rejected overwhelmingly at every displacement in both databases ($\chi^2$ on
 $3$ degrees of freedom, $p<10^{-16}$ throughout, reaching $p=6\times10^{-36}$).
 The ordering is physically sensible and identical across the two databases: the
 reaction mode is the unstable direction and leaves the basin fastest, while the
-softest vibration is the most forgiving. \emph{Cartesian distance therefore
+softest vibration is the most forgiving. This anisotropy is exactly what the
+topology of a saddle region predicts --- reaction paths curve, branch, and pass
+through valley-ridge inflections~\cite{Maeda2015}, so displacement along the
+unstable eigenvector escapes the basin far sooner than an equal step along a soft
+orthogonal mode. \emph{Cartesian distance therefore
 cannot determine the outcome, because outcomes spanning $33\%$ to $98\%$ share
 the same distance.}
 
@@ -724,7 +759,11 @@ against a single reference rewards a model for reproducing the database's
 particular saddle choice rather than for locating a valid, possibly better,
 transition state - even though (Section~\ref{sec:irc}) we cannot robustly
 determine, for these open-shell endpoints, whether each lower saddle belongs to
-the same reaction, a stepwise variant, or a different one.
+the same reaction, a stepwise variant, or a different one. That a single stored
+saddle is an arbitrary choice rather than ground truth is corroborated by reaction
+databases built to enumerate mechanistic multiplicity: RGD1, for example, catalogs
+many reactions admitting more than one validated transition
+state~\cite{Zhao2023}.
 
 \paragraph{Local optimizers are Hessian-blind.}
 A quasi-Newton saddle-point optimizer only ever sees the local Hessian; from a
@@ -741,11 +780,15 @@ A stochastic generator can place a good saddle among its samples far more often
 than any single draw suggests: for RitS the oracle best of ten roughly triples
 the deployable success rate. But choosing that sample requires the reference, and
 none of the reference-free scores we tried --- consensus, xTB force, xTB energy ---
-selects better than chance. Best-of-$N$ evaluation therefore measures the wrong
-quantity: it credits a model for a sample it cannot identify without the answer,
-and overstates deployable performance by about threefold. The honest figure is
-the expected quality of a \emph{single} draw, or of a draw selected by a genuinely
-reference-free rule.
+selects better than chance. This is the sampling-power/scoring-power split that
+structure-based drug design formalized a decade ago~\cite{Wang2016,CASF2016}:
+generating a good candidate somewhere in the top-$N$ is a different, easier problem
+than ranking it first without an oracle, and the gap between them is a general
+bottleneck of generative models, not a quirk of RitS. Best-of-$N$ evaluation
+therefore measures the wrong quantity: it credits a model for a sample it cannot
+identify without the answer, and overstates deployable performance by about
+threefold. The honest figure is the expected quality of a \emph{single} draw, or
+of a draw selected by a genuinely reference-free rule.
 
 \paragraph{Toward better objectives.}
 The community should (i)~report convergence rate and IRC connectivity rather than
