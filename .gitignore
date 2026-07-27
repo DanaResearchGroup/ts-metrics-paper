@@ -24,7 +24,7 @@ bench/*
 bench/plots/*
 !bench/plots/auc_ceiling.png
 !bench/plots/blind_spots.png
-!bench/plots/generalisation.png
+!bench/plots/generalization.png
 !bench/plots/generative.png
 !bench/plots/ladder.png
 !bench/plots/raincloud_by_outcome.png
