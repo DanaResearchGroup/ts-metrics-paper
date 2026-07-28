@@ -31,8 +31,8 @@ $520$ interpolation-based guesses for $260$ reactions from the Transition1x
 database~[Schreiner M., Sci.\ Data 2022, 9, 779] at the r$^2$SCAN-3c level, we find that \emph{every} geometry-based
 quality measure -- Kabsch-aligned RMSD, D-MAE, a reaction-coordinate projection,
 and cheap semi-empirical descriptors -- saturates in a narrow band of the area
-under the receiver-operating-characteristic curve (AUC; $0.5$ is chance, $1$ is
-perfect), $0.77$--$0.84$, for predicting optimization success, with about $14\%$
+under the receiver-operating-characteristic curve (AUC), $0.77$--$0.84$, for
+predicting optimization success, with about $14\%$
 of low-RMSD guesses nonetheless failing. Decomposing
 the ``failures,'' $38\%$ converge to a genuine but \emph{different} first-order
 saddle point (median energy difference $\sim 131$~kJ\,mol$^{-1}$ from the reference, $77\%$ of
@@ -53,8 +53,7 @@ oracle best-of-$N$ selection roughly triples its deployable single-draw success
 rate, yet no reference-free score recovers that gain, so reported best-of-$N$
 figures overstate what a user obtains.
 We conclude that (i)~the saturation near AUC $0.84$ is an information ceiling,
-not a shortcoming of any metric: a guess geometry does not encode
-how large the basin around its target saddle is; (ii)~RMSD and D-MAE compound this by
+not a shortcoming of any metric; (ii)~RMSD and D-MAE compound this by
 measuring similarity to one arbitrarily chosen saddle rather than usefulness,
 while reference databases are energetically skewed, so
 interpolation guesses routinely locate \emph{lower-energy} saddles absent from
@@ -88,57 +87,59 @@ TS -- the root-mean-square deviation (RMSD) of atomic coordinates
 after optimal superposition, or the mean absolute error of the
 interatomic-distance matrix (D-MAE).
 
-Evaluation practice across this body of work is uniform in kind. The metric is
-almost always geometric -- a Cartesian RMSD to the reference saddle, or the D-MAE.
-The Transition1x-trained diffusion and optimal-transport models headline a median
-RMSD to the held-out reference ($0.08$~\AA\ for OA-ReactDiff~\cite{Duan2023},
-$0.053$~\AA\ for ReactOT~\cite{ReactOT}), with RitS~\cite{RitS} reporting the
-lowest median among generators evaluated on it, whereas models trained on the
-Grambow and RDB7 reaction sets instead, such as TSDiff~\cite{TSDiff} and
-GoFlow~\cite{GoFlow}, headline the D-MAE or the coverage of their draws. Many of
-these works already look past pure geometry: OA-ReactDiff couples its generator to
-a confidence model that flags unreliable predictions, OA-ReactDiff and ReactOT
-report barrier errors of a few kcal\,mol$^{-1}$, and TS-GCN~\cite{TSGCN},
-TSDiff, and GoFlow each validate a fraction of their guesses by optimizing them to
-a saddle and confirming that it connects the intended reactant and product -- with
-TSDiff and GoFlow both noting that some of their ``errors'' are saddles
-\emph{lower} in energy than the reference. Even so, the geometric score that
-headlines each paper stays anchored to a single reference saddle, whose provenance
-is easy to forget: the Transition1x references were located by nudged-elastic-band
-searches at the $\omega$B97X level~\cite{Schreiner2022} and were never certified as
-the lowest-energy, or the only, saddle linking their endpoints. Broader reaction
-datasets such as RDB7~\cite{Grambow2020} and RGD1~\cite{Zhao2023}, which span far
-more chemistry and tabulate full distributions of barrier heights, make the same
-point from the data side: any one collection samples only a slice of the accessible
-saddles, and its energetic coverage is a property of how it was built rather than
-of the reactions themselves.
+Evaluation practice across this body of work is uniform in kind: the metric is
+almost always geometric, either a Cartesian RMSD to the reference saddle or the
+D-MAE. Which one a paper reports tracks its training data. Models trained on
+Transition1x headline a median RMSD to the held-out reference -- $0.08$~\AA\ for
+OA-ReactDiff~\cite{Duan2023} and $0.053$~\AA\ for ReactOT~\cite{ReactOT} -- and
+RitS~\cite{RitS} reports the lowest median of any generator evaluated on it. Models
+trained on the earlier Grambow and RDB7 reaction sets, such as TSDiff~\cite{TSDiff}
+and GoFlow~\cite{GoFlow}, instead report the D-MAE or the coverage of their draws.
 
-The reason the field defaults to these Cartesian measures is practical rather
-than principled: the physically correct test of a predicted TS --
-optimizing it to a first-order saddle and verifying, via an intrinsic reaction
-coordinate (IRC)~\cite{Fukui1981}, that it connects the intended reactant and
-product -- requires Hessians and reaction-path integrations that are far too
-expensive to run for every prediction during model development. Machine-learned
+Many of these works already look past pure geometry. OA-ReactDiff pairs its
+generator with a confidence model that flags unreliable predictions, and both it
+and ReactOT report barrier errors of a few kcal\,mol$^{-1}$. TS-GCN~\cite{TSGCN},
+TSDiff, and GoFlow each validate a fraction of their guesses physically, optimizing
+them to a saddle and checking that it connects the intended reactant and product.
+TSDiff and GoFlow even report that some of their apparent ``errors'' are saddles
+\emph{lower} in energy than the reference.
+
+Yet every headline score is still measured against a single reference saddle, and
+that reference is easy to over-trust. The Transition1x saddles were located by
+nudged-elastic-band searches at the $\omega$B97x/6-31G(d) level~\cite{Schreiner2022},
+and none is guaranteed to be the lowest-energy saddle between its endpoints, or
+even the only one. Broader datasets reinforce the point: RDB7~\cite{Grambow2020} and
+RGD1~\cite{Zhao2023} span far more chemistry and tabulate full distributions of
+barrier heights, so any one collection samples only a slice of the accessible
+saddles. Its energetic coverage reflects how the dataset was built, not the
+reactions themselves.
+
+The reason the field defaults to these Cartesian measures is practical, not
+principled. The physically correct test of a predicted TS -- optimizing it to a
+first-order saddle and verifying, via an intrinsic reaction coordinate
+(IRC)~\cite{Fukui1981}, that it connects the intended reactant and product --
+requires Hessians and reaction-path integrations far too expensive to run for
+every prediction during model development. Machine-learned
 Hessians~\cite{Yuan2024} and reactive interatomic potentials~\cite{Busk2023}
 lower this cost but do not remove the need for a target-level verification. A
 cheap geometric distance to a stored reference is an attractive surrogate. Implicit in its use is
 an assumption that, to our knowledge, has never been tested directly: that a higher
-similarity to the reference implies a more \emph{useful} guess, i.e.\ one more
-likely to converge, under a standard saddle-point optimizer, to a valid
-TS.
+similarity to the reference implies a more \emph{useful} guess, i.e., one that is
+more likely to converge to a valid TS under a standard saddle-point optimizer.
 
 An analogous reckoning has already taken place in structure-based drug design,
 where similarity to a single crystallographic pose was long the standard
-benchmark. The PoseBusters analysis showed that deep-learning docking methods
-tuned to minimize pose RMSD routinely generate physically invalid
-geometries~\cite{PoseBusters}, and the CASF benchmarks established a distinction we
-return to for the generative model in Section~\ref{sec:generative}: a model's
-\emph{sampling power} -- placing a good candidate somewhere among its outputs -- is
-separate from its \emph{scoring power} -- ranking that candidate first without
-access to the answer~\cite{Wang2016,CASF2016}. TS prediction, we will show, is
+benchmark. The PoseBusters analysis~\cite{PoseBusters} showed that deep-learning docking
+methods tuned to minimize pose RMSD routinely generate physically invalid
+geometries, and the CASF (Comparative Assessment of Scoring Functions)
+benchmarks~\cite{CASF2016} established a distinction we return to for the generative
+model in Section~\ref{sec:generative}: a model's \emph{sampling power} -- placing a
+good candidate somewhere among its outputs -- is separate from its \emph{scoring
+power} -- ranking that candidate first without access to the answer~\cite{Wang2016}. TS prediction, we will show, is
 subject to the same split.
 
-Here we test that assumption directly. We take deliberately simple, geometry-only
+Here we directly test that assumption -- that a higher geometric similarity to the
+reference implies a more useful guess. We take deliberately simple, geometry-only
 predictors, optimize their guesses at a consistent density-functional-theory (DFT)
 level, and ask what -- if anything -- about a guess predicts whether it converges to
 a valid saddle, drawing conclusions only from quantities a practitioner can compute
@@ -184,7 +185,7 @@ learned models; they are cheap, transparent sources of realistic guesses.
 \subsection{Downstream optimization and success}
 From each guess we ran a TS optimization with analytic Hessians
 (ORCA \texttt{OptTS}) followed by a vibrational analysis. A guess was counted a
-\emph{success} if the optimization converged, the result had exactly one
+\textit{success} if the optimization converged, the result had exactly one
 imaginary frequency, and its Kabsch-aligned RMSD to the reference saddle was below
 $0.3$~\AA. Optimization cost was recorded as the number of geometry cycles and the
 wall-clock time.
@@ -195,47 +196,47 @@ We compared guess-quality measures both requiring the reference TS (Kabsch RMSD;
 D-MAE; a change-weighted D-MAE; a projection of the aligned error onto the
 reaction coordinate, split into components parallel and perpendicular to it; the
 un-normalized root-square deviation; and a reactive-atom-only RMSD) and
-\emph{deployable} descriptors requiring only the guess and the reactant/product
+deployable descriptors requiring only the guess and the reactant/product
 (the GFN2-xTB force norm on the guess, and its energy relative to the endpoints).
 GFN2-xTB~\cite{Bannwarth2019} denotes the second-generation geometry-, frequency- and non-covalent-
 interaction-parametrized semi-empirical tight-binding method.
 
-Because the outcome is binary (success or failure), we quantified how well a
+Because the outcome is binary (\textit{success} or \textit{failure}), we quantified how well a
 continuous measure separates the two classes by the area under the
 receiver-operating-characteristic curve (AUC). Intuitively, the AUC is the
-probability that a randomly chosen failure is assigned a larger error than a
-randomly chosen success: $0.5$ is uninformative and $1.0$ is
+probability that a randomly chosen \textit{failure} is assigned a larger error than a
+randomly chosen \textit{success}: $0.5$ is uninformative and $1.0$ is
 perfect separation. The measure needs no decision threshold and is unchanged by
 any monotone rescaling of the metric.
 
 \subsection{Controlled displacement experiment}
-To test whether the saturation of the metrics is a property of the metrics or of
-the surface, we constructed guesses whose deviation was fixed by design rather than
-observed. Each reference saddle was relaxed to a GFN2-xTB~\cite{Bannwarth2019}
-saddle with the Sella optimizer~\cite{Hermes2022}, and the Hessian was computed
-there by finite differences. Displacement directions were taken as the imaginary mode, the softest
-and stiffest internal vibrations, and an isotropic Gaussian vector. Because
-Kabsch alignment removes rigid-body motion, the six translation/rotation modes were
-projected out of every direction before use -- without this, a mode dominated by
-rotation produces a displacement an order of magnitude smaller than its nominal
-length. The step length was then solved by bisection so that the achieved Kabsch
+To test whether a metric's ability to separate success from failure is limited by
+the metric itself or by the surface, we constructed guesses whose deviation was
+fixed by design rather than observed. Each reference saddle was re-optimized at the GFN2-xTB~\cite{Bannwarth2019}
+level with the Sella saddle-point optimizer~\cite{Hermes2022}, and the Hessian was
+computed there by finite differences. Displacement directions were taken as the imaginary mode, the softest
+and stiffest internal vibrations, and an isotropic Gaussian vector. Because Kabsch alignment removes rigid-body motion, the six translation/rotation
+modes were projected out of every direction before use. Without this projection, a
+mode dominated by rotation produces a displacement an order of magnitude smaller
+than its nominal length. The step length was then solved by bisection so that the achieved Kabsch
 RMSD equaled the target; the achieved value was stored for every trial and checked
 during analysis. The saddle search was repeated from each displaced structure and
 counted as a return if it converged within $0.3$~\AA\ of the original xTB saddle.
-This used $187$ (Transition1x) and $186$ (Reaction-QM) reactions, about $3\,200$
-trials per database, at GFN2-xTB throughout so that no reference-level
+The displacement experiment used $187$ (Transition1x) and $186$ (Reaction-QM)
+reactions, about $3\,200$ trials per database, at GFN2-xTB throughout so that no reference-level
 inconsistency entered. Because the isotropic direction was drawn at random, its
 seed was derived from the reaction identifier rather than from the process, so
 that splitting the batch across cluster jobs could not alter the result.
 
 \subsection{Generative model}
 \label{sec:rits-methods}
-To test whether the ceiling is specific to interpolation guesses, we also generated
-saddles with RitS~\cite{RitS}, a flow-matching model that predicts a TS
-from reactant and product structures. We used the released general checkpoint
+To test whether a metric's limited ability to separate success from failure is
+specific to interpolation-based guesses, we also generated saddles with
+RitS~\cite{RitS}, a flow-matching model that predicts a TS from reactant and
+product structures. We used the released general checkpoint
 (not the Transition1x-specific one), which avoids train--test leakage on our
 Transition1x reactions; the reactant and product minima are the r$^2$SCAN-3c
-geometries used everywhere else. Because the model is stochastic, we drew ten
+geometries used everywhere else. Because RitS is stochastic, we drew ten
 samples per reaction and kept them all. The predicted atom ordering matches the
 input, which we verified per reaction. We then optimized two of the ten samples at
 r$^2$SCAN-3c under the same success criterion as the other predictors: the first
@@ -245,33 +246,34 @@ three scores -- the geometric medoid, the lowest GFN2-xTB force norm, and the
 lowest GFN2-xTB energy -- none of which sees the reference.
 
 \subsection{Connectivity}
-For each converged \emph{alternative} saddle we computed the intrinsic reaction
-coordinate (IRC) -- the minimum-energy descent path in both directions -- and
+For each converged alternative saddle we computed the IRC -- the
+minimum-energy descent path in both directions -- and
 identified the two endpoints by molecular-graph perception -- covalent bond graphs
-and RMG-Py graph isomorphism, following the structure-perception approach of the
+and graph isomorphism as implemented in RMG~\cite{RMGv3,RMGv4}, following the structure-perception approach of the
 Automated Rate Calculator (ARC)~\cite{ARC} -- restricted where possible to the
 bonds that change across the reaction so that conformational differences were
 ignored. An endpoint was labeled reactant, product, or a distinct intermediate.
-Symmetry-equivalent artifacts (energy within $0.05$~eV of the reference saddle)
+Symmetry-equivalent artifacts (energy within $4.8$~kJ\,mol$^{-1}$ of the reference saddle)
 were removed before this analysis.
 
 \section{Results}
 
-\subsection{No geometry metric predicts convergence beyond AUC $\approx 0.84$}
+\subsection{Geometry metrics information ceiling}
 \label{sec:ceiling}
-Two distinct binary outcomes are available, and we are explicit about which is
-meant throughout: \emph{convergence}, whether the saddle search terminated at any
-first-order saddle at all, and \emph{success}, the stricter requirement that it
+Two distinct binary outcomes are available: \textit{convergence}, whether the
+saddle search terminated at any
+first-order saddle at all, and \textit{success}, the stricter requirement that it
 reached the reference saddle (within $0.3$~\AA, with exactly one imaginary
-frequency). All areas under the receiver-operating-characteristic curve quoted
-below refer to success unless stated otherwise; discrimination of mere
-convergence is uniformly weaker (RMSD: $0.733$ against $0.806$ for success),
-because a guess may converge perfectly well to the ``wrong'' saddle, which is the
-subject of Section~\ref{sec:alt}.
+frequency). All AUC values quoted
+below refer to \textit{success} unless stated otherwise; discrimination of mere
+\textit{convergence} is uniformly weaker (RMSD: $0.733$ against $0.806$ for
+\textit{success}),
+because a guess may converge perfectly well to the ``wrong'' saddle
+(Section~\ref{sec:alt}).
 
 Table~\ref{tab:auc} reports how well each measure predicts optimization failure
 ($n=400$). Kabsch RMSD is the best single measure at AUC $0.806$; D-MAE is
-markedly worse ($0.769$). Every measure -- including the perpendicular
+slightly lower ($0.769$). Every measure -- including the perpendicular
 reaction-coordinate error, which carries essentially all of RMSD's signal while
 the parallel component (AUC $0.658$) carries almost none -- lands in a narrow
 band around $0.80$. The distributions overlap heavily: about $14\%$ of low-RMSD
@@ -359,7 +361,7 @@ deployable -- lands in a narrow band that ceilings near AUC $0.84$
 from any function of the guess, because the outcome is fixed by the
 potential-energy surface, not by the prediction.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{../bench/plots/auc_ceiling.png}
 \caption{No guess-based measure predicts optimization convergence beyond
@@ -402,7 +404,7 @@ semi-empirical descriptors match oracle RMSD without a reference structure.}
 \label{tab:auc}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/raincloud_by_outcome.png}
 \caption{Distributions of each measure by outcome (raincloud: half-violin, box,
@@ -411,12 +413,13 @@ successes, shows that no fixed RMSD cutoff separates usable from unusable guesse
 \label{fig:dist}
 \end{figure}
 
-\subsection{A third of ``failures'' are alternative TSs}
+\subsection{Alternative saddles among the ``failures''}
 \label{sec:alt}
 Of $239$ failures, $142$ ($59\%$) do not converge, $92$ ($38\%$) converge to a
 \emph{different} first-order saddle, and $5$ collapse to a minimum. For the
-alternative saddles the median energy difference from the reference is $1.36$~eV,
-and $77\%$ are \emph{lower} in energy; only $13\%$ lie within $0.05$~eV of the
+alternative saddles the median energy difference from the reference is
+$131$~kJ\,mol$^{-1}$, and $77\%$ are \emph{lower} in energy; only $13\%$ lie within
+$4.8$~kJ\,mol$^{-1}$ of the
 reference (symmetry-equivalent artifacts). A third of what the metric calls
 failure is therefore the optimizer locating a genuine, usually more stable,
 TS that the reference database simply does not contain. This is
@@ -427,7 +430,7 @@ scores as deviations rather than discoveries.
 
 The magnitude matters kinetically. By transition-state theory~\cite{Eyring1935}
 the rate constant is $k = (k_\mathrm{B}T/h)\,\exp(-\Delta G^\ddagger/RT)$, so a
-median discrepancy of $1.36$~eV ($\sim 131$~kJ\,mol$^{-1}$) in barrier height
+median discrepancy of $\sim 131$~kJ\,mol$^{-1}$ in barrier height
 maps to a factor of $\exp(\Delta E / k_\mathrm{B}T) \approx 10^{23}$ in the rate
 constant at $298$~K. The estimate rests on two assumptions we state plainly. It
 equates the electronic barrier difference $\Delta E$ with a free-energy difference
@@ -443,7 +446,7 @@ slip but discarding TSs whose barriers differ by tens of orders of magnitude in
 rate -- precisely the regime where getting the \emph{right} saddle, rather than
 one close in RMSD, is decisive.
 
-\subsection{Convergence is a potential-energy-surface property}
+\subsection{Convergence as a surface property}
 Restricting to low-RMSD guesses ($<0.28$~\AA), which ``should'' converge, and
 testing purely structural properties of the reactant and product, no feature
 separates the $30$ failures from the $140$ successes (all AUC $0.5$--$0.6$).
@@ -487,9 +490,9 @@ numerically, so every trial sits at the requested distance to better than
 $10^{-3}$~\AA; the achieved distance is recorded for every trial and audited.
 A trial ``returns'' if the search converges to the same saddle within $0.3$~\AA.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../bench/plots/ladder.png}
+\includegraphics[width=0.9\textwidth]{../bench/plots/ladder.png}
 \caption{Controlled displacement from the reference saddle ($187$ and $186$
 reactions, ${\sim}3\,200$ trials per database). Every point at a given abscissa
 sits at an \emph{identical} distance from the saddle -- verified to
@@ -584,9 +587,9 @@ reference one \emph{grows}, from $19\%$ to $26\%$: as reactions become more
 complex, the reference TS accounts for a smaller share of the
 accessible saddles, reinforcing Section~\ref{sec:irc}.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../bench/plots/generalization.png}
+\includegraphics[width=0.9\textwidth]{../bench/plots/generalization.png}
 \caption{Generalization to Reaction-QM. (a) The predictors degrade sharply out of
 distribution; the shaded band is the Transition1x interquartile range of guess
 deviation, used to match the two datasets. (b) Downstream success against guess
@@ -601,7 +604,7 @@ confidence intervals in (c).}
 \end{figure}
 
 What does not change is the central negative result. Taken over the full range,
-the area under the receiver-operating-characteristic curve for the deviation
+the AUC for the deviation
 measure appears to \emph{improve} to $0.92$, which would suggest the ceiling of
 Section~\ref{sec:ceiling} had been broken. It has not. That figure is an artifact
 of range: discrimination is trivially easier when the guesses span a wide quality
@@ -620,7 +623,7 @@ The one result that does replicate is the predictor ordering: the bond-order
 predictor again edges out the midpoint baseline ($7\%$ vs $5\%$ success), the
 same direction and the same negligible magnitude as before.
 
-\subsection{The same ceiling constrains a state-of-the-art generative model}
+\subsection{The ceiling in a state-of-the-art generative model}
 \label{sec:generative}
 The predictors studied so far are deliberately simple. A natural objection is
 that the ceiling is a property of weak, interpolation-based guesses and would
@@ -670,9 +673,9 @@ a modern generator in a sharper form -- as a selection problem -- and it caution
 that best-of-$N$ scores in the generative-TS literature overstate deployable
 performance by roughly a factor of three.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../bench/plots/generative.png}
+\includegraphics[width=0.9\textwidth]{../bench/plots/generative.png}
 \caption{A state-of-the-art generator under the same lens. (a) RitS is
 stochastic: for each Transition1x reaction (sorted by median), ten draws span a
 wide range; the oracle best (blue) sits far below the single draw (orange).
@@ -684,19 +687,19 @@ databases -- a gap no reference-free selector closes.}
 \label{fig:generative}
 \end{figure}
 
-\subsection{The nature of the alternative saddles is not reliably determinable}
+\subsection{The nature of the alternative saddles}
 \label{sec:irc}
-We attempted to classify each alternative saddle by computing its intrinsic
-reaction coordinate (IRC) at r$^2$SCAN-3c and identifying the two endpoints
+We attempted to classify each alternative saddle by computing its
+IRC at r$^2$SCAN-3c and identifying the two endpoints
 (after a short GFN2-xTB relaxation of the frequently truncated IRC endpoints).
 Reference-TS controls, whose IRCs must connect their reactant and
 product, validated the endpoint extraction ($6/6$). Symmetry-equivalent artifacts
-(energy within $0.05$~eV of the reference) account for $\sim 13\%$ of the
+(energy within $4.8$~kJ\,mol$^{-1}$ of the reference) account for $\sim 13\%$ of the
 alternative saddles and were removed.
 
 However, assigning the remaining endpoints to a chemical species proved
 \emph{not robust}. Four reasonable identity criteria -- covalent adjacency
-graph, InChI, RMG-Py graph isomorphism (as used by the Automated Rate Calculator,
+graph, InChI, graph isomorphism as implemented in RMG (as used by the Automated Rate Calculator,
 ARC~\cite{ARC}), and canonical SMILES -- returned between
 $6\%$ and $91\%$ ``same reaction'' on the identical set of endpoints. Manual
 inspection identified three specific algorithmic blind spots, all aggravated by
@@ -723,7 +726,7 @@ criterion is an open problem. What we can state solidly, the foregoing
 notwithstanding, rests on energetics alone: the alternative saddles exist, are
 usually lower in energy, and are penalized by a reference-matching metric.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\linewidth]{../bench/plots/blind_spots.png}
 \caption{Three algorithmic blind spots that make automated species perception
