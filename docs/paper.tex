@@ -54,7 +54,9 @@ rate, yet no reference-free score recovers that gain, so reported best-of-$N$
 figures overstate what a user obtains.
 We conclude that (i)~the saturation near AUC $0.84$ is an information ceiling,
 not a shortcoming of any metric: a guess geometry does not encode
-how large the basin around its target saddle is; (ii)~RMSD and D-MAE compound this by
+how large the basin around its target saddle is, and the best geometric measure we
+construct -- a parameter-free displacement-weighted RMSD that improves on the
+standard RMSD and D-MAE -- already operates at that limit; (ii)~RMSD and D-MAE compound this by
 measuring similarity to one arbitrarily chosen saddle rather than usefulness,
 while reference databases are energetically skewed, so
 interpolation guesses routinely locate \emph{lower-energy} saddles absent from
@@ -83,8 +85,8 @@ reactant and product structures~\cite{Duan2023}, to the recent optimal-transport
 and flow-matching approaches~\cite{ReactOT,GoFlow,RitS}. The more recent of these
 are trained on the Transition1x database~\cite{Schreiner2022} and evaluated on
 held-out reactions from it. Almost without
-exception these models are evaluated by geometric similarity to a reference
-TS -- the root-mean-square deviation (RMSD) of atomic coordinates
+exception the headline benchmark for these models is geometric similarity to a
+reference TS -- the root-mean-square deviation (RMSD) of atomic coordinates
 after optimal superposition, or the mean absolute error of the
 interatomic-distance matrix (D-MAE).
 
@@ -146,6 +148,13 @@ without already knowing the answer. Beneath the choice of error metric lies the
 following question: when the reference is only one of the many valid saddles a
 reaction can admit, does a guess's resemblance to that single structure tell us
 whether it is useful at all?
+
+The field has thus already begun to look past pure geometry; what it lacks is a
+demonstration of whether geometric similarity is merely incomplete or
+\emph{fundamentally bounded}, and of what a criterion should measure once it is.
+We provide both -- and, for evaluations that must remain geometric, identify the
+strongest such metric: a parameter-free displacement-weighted RMSD that reaches
+the ceiling the standard RMSD and D-MAE fall short of.
 
 \section{Methods}
 
@@ -292,8 +301,12 @@ displacement across the reaction, $w_i = \lvert \mathbf{r}_i^{P}-\mathbf{r}_i^{R
 \rvert$ (Kabsch-aligned), needs no free parameter and no explicit reaction center
 and reaches AUC $0.839$; exponential decays in graph-bond distance and in Euclidean
 distance from the reactive atoms give $0.819$ and $0.820$. Thus the best purely geometric
-convergence measure is neither global RMSD nor a reactive-atom mask, but a
-motion-weighted RMSD -- an improved, still oracle, benchmark metric.
+convergence measure is neither global RMSD ($0.806$) nor a reactive-atom mask, but
+this motion-weighted RMSD: a parameter-free reweighting that lifts discrimination
+above plain RMSD, and well above D-MAE ($0.769$), to essentially the ceiling.
+Where a reference-based geometric score must be reported, it is therefore a better
+benchmark metric than the RMSD and D-MAE now standard in the literature -- though,
+as the rest of this section shows, still a bounded one.
 
 \begin{table}[t]
 \centering
