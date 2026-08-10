@@ -301,13 +301,14 @@ the reacting center discards the whole-molecule fit that partly governs which
 basin the optimizer enters.
 
 Between these extremes, a \emph{continuous} weighting that concentrates on the
-reaction zone without discarding the rest improves on plain RMSD
-(Table~\ref{tab:weights}). Weighting each atom's squared deviation by its
+reaction zone without discarding the rest improves on plain RMSD: in
+Table~\ref{tab:weights} the three weighted rows all exceed the ``uniform'' row,
+which is plain Kabsch RMSD at AUC $0.806$. Weighting each atom's squared deviation by its
 displacement across the reaction, $w_i = \lvert \mathbf{r}_i^{P}-\mathbf{r}_i^{R}
 \rvert$ (Kabsch-aligned), needs no free parameter and no explicit reaction center
 and reaches AUC $0.839$; exponential decays in graph-bond distance and in Euclidean
 distance from the reactive atoms give AUC $0.819$ and $0.820$. Thus the best purely geometric
-convergence measure is neither global RMSD (AUC $0.806$) nor a reactive-atom mask, but
+convergence measure is neither global RMSD nor a reactive-atom mask, but
 this motion-weighted RMSD: a parameter-free reweighting that lifts discrimination
 above plain RMSD, and well above D-MAE (AUC $0.769$), to essentially the ceiling.
 Where a reference-based geometric score must be reported, it is therefore a better
@@ -383,7 +384,7 @@ potential-energy surface, not by the prediction.
 \includegraphics[width=0.82\textwidth]{../bench/plots/auc_ceiling.png}
 \caption{No guess-based measure predicts optimization convergence beyond
 AUC $\approx 0.84$ ($n=400$). Oracle measures (blue) require the reference
-TS; deployable descriptors (green) require only the guess and the
+TS; deployable descriptors (gold) require only the guess and the
 reactant/product; the random-forest ensemble (red) combines all eight geometric
 measures. None exceeds the single displacement-weighted RMSD.}
 \label{fig:ceiling}
