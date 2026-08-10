@@ -385,7 +385,7 @@ potential-energy surface, not by the prediction.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{../bench/plots/auc_ceiling.png}
-\caption{No guess-based measure predicts optimization convergence beyond
+\caption{None of the guess-based measures predict optimization convergence beyond
 AUC $\approx 0.84$ ($n=400$). Oracle measures (blue) require the reference
 TS; deployable descriptors (gold) require only the guess and the
 reactant/product; the random-forest ensemble (red) combines all eight geometric
@@ -393,12 +393,11 @@ measures. None exceeds the single displacement-weighted RMSD.}
 \label{fig:ceiling}
 \end{figure}
 
-We attribute the surprising transferability of a semi-empirical force to the
-r$^2$SCAN-3c optimization outcome to the breadth of the TS basin:
+We attribute the surprising transferability -- of a semi-empirical force to the
+r$^2$SCAN-3c optimization outcome -- to the breadth of the TS basin:
 what governs convergence is not sub-\AA ngstr\"om geometric accuracy but whether
 the guess lies within the basin of attraction of the saddle, a region tens of
-degrees and tenths of an \AA ngstr\"om wide. GFN2-xTB, parametrized across the
-periodic table for structures and reaction energetics~\cite{Bannwarth2019},
+degrees and tenths of an \AA ngstr\"om wide. GFN2-xTB~\cite{Bannwarth2019}
 reproduces this coarse curvature and gradient structure well even where it
 mis-estimates the barrier itself, so a small semi-empirical residual force is a
 faithful indicator that the higher-level optimizer will fall into the same basin.
