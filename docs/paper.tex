@@ -9,8 +9,8 @@
 \usepackage[hidelinks]{hyperref}
 \setlength{\epigraphwidth}{0.72\textwidth}
 
-\title{\textbf{Cartesian similarity is a poor proxy for transition-state
-quality: reference databases penalize valid alternative saddles}}
+\title{\textbf{The RMSD ceiling: an information limit on geometry-based
+transition-state metrics}}
 \author[1,3]{Kfir Kaplan\thanks{kfir.k4@gmail.com}}
 \author[1,2,3]{Alon Grinberg Dana\thanks{Corresponding author: alon@technion.ac.il}}
 \affil[1]{Wolfson Department of Chemical Engineering, Technion -- Israel Institute of Technology, Haifa 3200003, Israel}
@@ -185,6 +185,23 @@ Transition1x. All geometries were re-optimized at r$^2$SCAN-3c exactly as above,
 the two databases were compared at an identical working level and under an
 identical success criterion. Results are reported in Section~\ref{sec:rqm}.
 
+\begin{table}[t]
+\centering
+\caption{Failure-prediction AUC of RMSD under four per-atom weighting schemes
+($n=400$).}
+\label{tab:weights}
+\begin{tabular}{lc}
+\toprule
+Weighting of the per-atom RMSD & AUC (failure) \\
+\midrule
+uniform (plain Kabsch RMSD) & 0.806 \\
+graph-distance decay from reactive atoms & 0.819 \\
+Euclidean-distance decay from reactive atoms & 0.820 \\
+displacement $\lvert r^{P}-r^{R}\rvert$ (parameter-free) & \textbf{0.839} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Predictors}
 Two geometry-only predictors generated the guesses whose fate we studied:
 \emph{midpoint}, the linear interpolation $\tfrac{1}{2}(D^{R}+D^{P})$ of the
@@ -273,6 +290,8 @@ were removed before this analysis.
 
 \subsection{Geometry metrics information ceiling}
 \label{sec:ceiling}
+A geometric metric is only as useful as its ability to anticipate the outcome of
+an optimization, so we begin by defining that outcome precisely.
 Two distinct binary outcomes are available: \textit{convergence}, whether the
 saddle search terminated at any
 first-order saddle at all, and \textit{success}, the stricter requirement that it
@@ -315,56 +334,40 @@ Where a reference-based geometric score must be reported, it is therefore a bett
 benchmark metric than the RMSD and D-MAE now standard in the literature -- though,
 as the rest of this section shows, still a bounded one.
 
-\begin{table}[t]
-\centering
-\begin{tabular}{lc}
-\toprule
-Weighting of the per-atom RMSD & AUC (failure) \\
-\midrule
-uniform (plain Kabsch RMSD) & 0.806 \\
-graph-distance decay from reactive atoms & 0.819 \\
-Euclidean-distance decay from reactive atoms & 0.820 \\
-displacement $\lvert r^{P}-r^{R}\rvert$ (parameter-free) & \textbf{0.839} \\
-\bottomrule
-\end{tabular}
-\caption{Continuous, reaction-zone-focused atom weights make RMSD a better
-convergence predictor than either the global or the reactive-atom-only form
-($n=400$).}
-\label{tab:weights}
-\end{table}
-
 Finally, a
 random forest~\cite{Breiman2001} trained on purely deployable features (GFN2-xTB
 force and energy plus reactant/product geometry, with no reference TS) reaches
 AUC $0.791$ -- matching oracle RMSD without ever seeing the answer.
 
-The limit is also not an artifact of the coordinate \emph{system}. Repeating the
+The limit is also not an artifact of the coordinate system. Repeating the
 analysis in redundant internal coordinates -- the representation the optimizer
 itself uses -- does not help: a reaction-change-weighted deviation over all
 bonds, angles and dihedrals (each expressed as an equivalent atomic displacement)
-reaches only AUC $0.59$, because the many soft, periodic dihedral coordinates
-flood the metric; restricted to bonds and angles it recovers to AUC $0.74$, still
+reaches only AUC $0.590$, because the many soft, periodic dihedral coordinates
+flood the metric; restricted to bonds and angles it recovers to AUC $0.740$, still
 below Cartesian RMSD. Weighting the coordinate types by the optimizer's own
 default initial-Hessian stiffnesses ($0.5$, $0.2$, $0.1$ for stretches, bends and
-torsions) as a harmonic-energy metric does not help either (AUC $0.61$): dihedrals are
-downweighted per coordinate but far outnumber the bonds, so their summed
-contribution still dominates. The result is unchanged when the metric is built on ORCA's \emph{exact} redundant
+torsions, respectively) as a harmonic-energy metric does not help either (AUC $0.610$): the
+per-coordinate downweighting is far too small to offset how much further the dihedrals
+swing. Their typical deviation is some five times a bond's, so after squaring they still
+carry over $90\%$ of the summed harmonic contribution. The result is unchanged when the metric is built on ORCA's exact redundant
 internal coordinates, parsed from the optimization logs rather than reconstructed
-(AUC $0.60$ against $0.59$ for our bond-graph set). Added to the displacement-weighted
+(AUC $0.600$ against $0.590$ for our bond-graph set). Added to the displacement-weighted
 RMSD, internal-coordinate deviations raise the cross-validated AUC
 from $0.839$ to $0.844$, within the fold-to-fold noise ($\pm 0.02$). Internal
 coordinates -- even the optimizer's own DOFs, weighting, and representation --
-thus carry no convergence information the Cartesian metric lacks.
+thus add nothing to the Cartesian metric's power to anticipate whether a guess
+converges to a saddle.
 
-The limit is not specific to \emph{geometric} information either. An electronic
+The limit is not specific to geometric information either. An electronic
 descriptor -- the deviation of the guess's Mayer bond orders~\cite{Mayer1983,Mayer2007}
-from the reference, read from the same DFT output -- reaches AUC $0.70$ and, added to the
-displacement-weighted RMSD, again raises the cross-validated AUC
-only within noise ($0.839$ to $0.844$). Reaction-level features computed from the
-reactant and product alone (their geometric separation, reaction energy, and
-total bond reorganization) predict convergence more weakly still (best single
-feature, the $R{\to}P$ displacement, AUC $0.70$); the reaction energy is
-uninformative (AUC $0.46$). These describe how demanding a reaction is on average, not
+from the reference, read from the same DFT output -- reaches AUC $0.700$. Added to the
+displacement-weighted RMSD, it again raises the cross-validated AUC only within
+noise ($0.839$ to $0.844$). Features computed from the
+reactant and product alone -- their geometric separation, reaction energy, and
+total bond reorganization -- predict convergence more weakly still. The best of
+them, the $R{\to}P$ displacement, reaches only AUC $0.700$, and the reaction energy
+is uninformative (AUC $0.460$). These describe how demanding a reaction is on average, not
 whether a particular guess lies in a saddle basin, and so cannot exceed the
 guess-based ceiling.
 
@@ -404,6 +407,9 @@ correlated surface, which is exactly the quantity that predicts convergence.
 
 \begin{table}[t]
 \centering
+\caption{Failure-prediction AUC of geometric and semi-empirical guess-quality
+measures, with and without access to the reference TS.}
+\label{tab:auc}
 \begin{tabular}{lcc}
 \toprule
 Measure & AUC (failure) & Needs the reference TS? \\
@@ -417,9 +423,6 @@ GFN2-xTB force (guess) & 0.785 & \textbf{no} \\
 Deployable random forest & 0.791 & \textbf{no} \\
 \bottomrule
 \end{tabular}
-\caption{Every guess-quality measure saturates in the AUC band $0.77$--$0.84$. Deployable
-semi-empirical descriptors match oracle RMSD without a reference structure.}
-\label{tab:auc}
 \end{table}
 
 \begin{figure}[htbp]
@@ -624,9 +627,9 @@ distribution; the shaded band is the Transition1x interquartile range of guess
 deviation, used to match the two datasets. (b) Downstream success against guess
 deviation: at every matched deviation Reaction-QM succeeds less often, so a
 threshold calibrated on one database does not transfer to the other. (c) The
-apparent improvement in discrimination on Reaction-QM (AUC $0.92$) is an artifact of
+apparent improvement in discrimination on Reaction-QM (AUC $0.920$) is an artifact of
 its much wider deviation range; restricted to the matched band it falls to
-AUC $0.61$, statistically indistinguishable from both the Transition1x value and from
+AUC $0.610$, statistically indistinguishable from both the Transition1x value and from
 chance. Error bars are binomial standard errors in (b) and $95\%$ bootstrap
 confidence intervals in (c). All values in (c) are AUCs.}
 \label{fig:generalization}
@@ -634,14 +637,14 @@ confidence intervals in (c). All values in (c) are AUCs.}
 
 What does not change is the central negative result. Taken over the full range,
 the AUC for the deviation
-measure appears to \emph{improve} to $0.92$, which would suggest the ceiling of
+measure appears to \emph{improve} to $0.920$, which would suggest the ceiling of
 Section~\ref{sec:ceiling} had been broken. It has not. That figure is an artifact
 of range: discrimination is trivially easier when the guesses span a wide quality
 range ($0.74$--$1.33$~\AA\ interquartile) than a narrow one
 ($0.25$--$0.54$~\AA). Restricting the Reaction-QM guesses to the Transition1x
 interquartile range removes the advantage entirely -- the AUC
-falls to $0.61$ ($95\%$ bootstrap confidence interval $0.42$--$0.80$, $n=53$),
-statistically indistinguishable from both the Transition1x AUC of $0.73$
+falls to $0.610$ ($95\%$ bootstrap confidence interval $0.42$--$0.80$, $n=53$),
+statistically indistinguishable from both the Transition1x AUC of $0.730$
 ($0.66$--$0.81$) and from chance. Geometric similarity to the reference
 TS is therefore no more predictive on a harder and chemically
 broader database than on the one the conclusion was drawn from; if anything the
