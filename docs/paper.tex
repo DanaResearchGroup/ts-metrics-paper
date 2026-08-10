@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{epigraph}
@@ -25,51 +26,51 @@ Machine-learning models for transition-state (TS) geometry prediction are almost
 universally benchmarked by the root-mean-square deviation (RMSD) of atomic
 positions, or by the mean absolute error of the interatomic-distance matrix
 (D-MAE), relative to a reference TS. We show that these Euclidean measures are
-unreliable proxies for the quantity that actually matters to a practitioner: whether a predicted geometry optimizes to a genuine
-TS at a target level of density functional theory. Optimizing
-$520$ interpolation-based guesses for $260$ reactions from the Transition1x
-database~[Schreiner M., Sci.\ Data 2022, 9, 779] at the r$^2$SCAN-3c level, we find that \emph{every} geometry-based
-quality measure -- Kabsch-aligned RMSD, D-MAE, a reaction-coordinate projection,
-and cheap semi-empirical descriptors -- saturates in a narrow band of the area
-under the receiver-operating-characteristic curve (AUC), $0.77$--$0.84$, for
-predicting optimization success, with about $14\%$
-of low-RMSD guesses nonetheless failing. Decomposing
-the ``failures,'' $38\%$ converge to a genuine but \emph{different} first-order
-saddle point (median energy difference $\sim 131$~kJ\,mol$^{-1}$ from the reference, $77\%$ of
-them \emph{lower} in energy); these are legitimate alternative TSs
-that a reference-matching metric penalizes as errors. Once RMSD is held
-fixed, no structural property of the reactant or product distinguishes converging
-from failing guesses: convergence is governed by the topology of the
-potential-energy surface, which a Cartesian distance cannot see. A controlled
-experiment identifies the cause.
-Displacing each reference saddle by a \emph{prescribed} distance along different
-directions changes the probability of recovering it from $33\%$ to $98\%$
-at identical distance, so distance alone cannot determine the outcome; yet once
-direction is held fixed as well, the ceiling persists at AUC $\approx 0.83$. All
-conclusions replicate on a second,
-chemically broader database, on which discrimination at matched guess quality is
-no better than on Transition1x, and on a state-of-the-art flow-matching generator:
-oracle best-of-$N$ selection roughly triples its deployable single-draw success
-rate, yet no reference-free score recovers that gain, so reported best-of-$N$
-figures overstate what a user obtains.
-We conclude that (i)~the saturation near AUC $0.84$ is an information ceiling,
-not a shortcoming of any metric -- indeed the best geometric measure we construct,
-a parameter-free displacement-weighted RMSD, already operates at that limit;
-(ii)~RMSD and D-MAE compound this by
-measuring similarity to one arbitrarily chosen saddle rather than usefulness,
-while reference databases are energetically skewed, so
-interpolation guesses routinely locate \emph{lower-energy} saddles absent from
-the reference -- whether these are alternative, stepwise, or unrelated TSs
-is, for these open-shell systems, beyond the reach of current automated
-structure perception; and (iii)~as a practical
-consequence, a cheap GFN2-xTB force descriptor evaluated on the guess predicts
-convergence about as well as oracle RMSD while requiring no reference structure --
-useful precisely because the ceiling means nothing better is available.
-More broadly, these results argue for a change of yardstick. We suggest judging a
+unreliable proxies for the quantity a practitioner actually needs: whether a
+predicted geometry optimizes to a genuine TS at a target level of density
+functional theory.
+
+We optimized $520$ interpolation-based guesses for $260$ reactions from the
+Transition1x database~[Schreiner M., Sci.\ Data 2022, 9, 779] at the r$^2$SCAN-3c
+level. \emph{Every} geometry-based quality measure -- Kabsch-aligned RMSD, D-MAE,
+a reaction-coordinate projection, and cheap semi-empirical descriptors --
+saturates in a narrow band of the area under the receiver-operating-characteristic
+curve (AUC), $0.77$--$0.84$, for predicting optimization success. About $14\%$ of
+low-RMSD guesses fail nonetheless.
+
+Many of those ``failures'' are not failures at all. Of them, $38\%$ converge to a
+genuine but \emph{different} first-order saddle point, and $77\%$ of those lie
+\emph{lower} in energy than the reference (median difference
+$\sim 131$~kJ\,mol$^{-1}$). These are legitimate alternative TSs that a
+reference-matching metric penalizes as errors -- though whether each is an
+alternative, stepwise, or unrelated TS is, for these open-shell systems, beyond
+the reach of current automated structure perception. Once RMSD is held fixed, no
+structural property of the reactant or product distinguishes converging from
+failing guesses.
+
+A controlled experiment identifies the cause. Displacing each reference saddle by
+a \emph{prescribed} distance along different directions changes the probability of
+recovering it from $33\%$ to $98\%$, so distance alone cannot determine the
+outcome. Yet once direction is held fixed as well, the ceiling persists at
+AUC $\approx 0.83$. The saturation is therefore an information ceiling, not a
+shortcoming of any metric: the best geometric measure we construct, a
+parameter-free displacement-weighted RMSD, already operates at that limit.
+
+The conclusions replicate on a second, chemically broader database, where
+discrimination at matched guess quality is no better than on Transition1x. They
+replicate on a state-of-the-art flow-matching generator too. There, oracle
+best-of-$N$ selection roughly triples the deployable single-draw success rate, yet
+no reference-free score recovers that gain, so reported best-of-$N$ figures
+overstate what a user obtains.
+
+Two consequences follow. First, a cheap GFN2-xTB force descriptor evaluated on the
+guess predicts convergence about as well as oracle RMSD and requires no reference
+structure -- useful precisely because the ceiling means nothing better is
+available. Second, the field needs a change of yardstick. We suggest judging a
 predicted TS by whether it optimizes to \emph{any} valid reactant-to-product
-saddle -- its convergence and, where determinable, its connectivity -- not by its
-RMSD to a single reference, and, for stochastic generators, reporting the quality
-of a single draw or a reference-free-selected one rather than an oracle
+saddle -- its convergence and, where determinable, its connectivity -- rather than
+by its RMSD to a single reference, and, for stochastic generators, reporting the
+quality of a single draw or a reference-free-selected one rather than an oracle
 best-of-$N$. Such surface-based benchmarks would make reported progress reflect
 genuine usefulness rather than resemblance to one arbitrary database entry.
 \end{abstract}
@@ -100,7 +101,9 @@ and GoFlow~\cite{GoFlow}, instead report the D-MAE or the coverage of their draw
 
 Many of these works already look past pure geometry. OA-ReactDiff pairs its
 generator with a confidence model that flags unreliable predictions, and both it
-and ReactOT report barrier errors of a few kcal\,mol$^{-1}$. TS-GCN~\cite{TSGCN},
+and ReactOT report barrier errors of a few kcal\,mol$^{-1}$ with respect to their own
+DFT reference barriers -- a measure of geometric fidelity to that reference, not of
+thermochemical accuracy. TS-GCN~\cite{TSGCN},
 TSDiff, and GoFlow each validate a fraction of their guesses physically, optimizing
 them to a saddle and checking that it connects the intended reactant and product.
 TSDiff and GoFlow even report that some of their apparent ``errors'' are saddles
@@ -208,7 +211,8 @@ un-normalized root-square deviation; and a reactive-atom-only RMSD) and
 deployable descriptors requiring only the guess and the reactant/product
 (the GFN2-xTB force norm on the guess, and its energy relative to the endpoints).
 GFN2-xTB~\cite{Bannwarth2019} denotes the second-generation geometry-, frequency- and non-covalent-
-interaction-parametrized semi-empirical tight-binding method.
+interaction-parametrized semi-empirical tight-binding method. Every measure used in
+this work is defined mathematically in Appendix~\ref{app:metrics}.
 
 Because the outcome is binary (\textit{success} or \textit{failure}), we quantified how well a
 continuous measure separates the two classes by the area under the
@@ -275,7 +279,7 @@ first-order saddle at all, and \textit{success}, the stricter requirement that i
 reached the reference saddle (within $0.3$~\AA, with exactly one imaginary
 frequency). All AUC values quoted
 below refer to \textit{success} unless stated otherwise; discrimination of mere
-\textit{convergence} is uniformly weaker (RMSD: $0.733$ against $0.806$ for
+\textit{convergence} is uniformly weaker (RMSD: AUC $0.733$ against AUC $0.806$ for
 \textit{success}),
 because a guess may converge perfectly well to the ``wrong'' saddle
 (Section~\ref{sec:alt}).
@@ -285,14 +289,14 @@ Table~\ref{tab:auc} reports how well each measure predicts optimization failure
 slightly lower ($0.769$). Every measure -- including the perpendicular
 reaction-coordinate error, which carries essentially all of RMSD's signal while
 the parallel component (AUC $0.658$) carries almost none -- lands in a narrow
-band around $0.80$. The distributions overlap heavily: about $14\%$ of low-RMSD
+band around AUC $0.80$. The distributions overlap heavily: about $14\%$ of low-RMSD
 guesses fail and successes reach large RMSD, so no distance threshold cleanly
 separates the classes (Figure~\ref{fig:dist}).
 
 Two controls sharpen the point. The un-normalized root-square deviation (RMSD
 $\times\sqrt{N}$) gives AUC $0.808$, statistically indistinguishable from RMSD:
 the $1/N$ size normalization carries no convergence information. A
-reactive-atom-only RMSD is \emph{worse} ($0.783$): a hard binary restriction to
+reactive-atom-only RMSD is \emph{worse} (AUC $0.783$): a hard binary restriction to
 the reacting center discards the whole-molecule fit that partly governs which
 basin the optimizer enters.
 
@@ -302,10 +306,10 @@ reaction zone without discarding the rest improves on plain RMSD
 displacement across the reaction, $w_i = \lvert \mathbf{r}_i^{P}-\mathbf{r}_i^{R}
 \rvert$ (Kabsch-aligned), needs no free parameter and no explicit reaction center
 and reaches AUC $0.839$; exponential decays in graph-bond distance and in Euclidean
-distance from the reactive atoms give $0.819$ and $0.820$. Thus the best purely geometric
-convergence measure is neither global RMSD ($0.806$) nor a reactive-atom mask, but
+distance from the reactive atoms give AUC $0.819$ and $0.820$. Thus the best purely geometric
+convergence measure is neither global RMSD (AUC $0.806$) nor a reactive-atom mask, but
 this motion-weighted RMSD: a parameter-free reweighting that lifts discrimination
-above plain RMSD, and well above D-MAE ($0.769$), to essentially the ceiling.
+above plain RMSD, and well above D-MAE (AUC $0.769$), to essentially the ceiling.
 Where a reference-based geometric score must be reported, it is therefore a better
 benchmark metric than the RMSD and D-MAE now standard in the literature -- though,
 as the rest of this section shows, still a bounded one.
@@ -338,28 +342,28 @@ analysis in redundant internal coordinates -- the representation the optimizer
 itself uses -- does not help: a reaction-change-weighted deviation over all
 bonds, angles and dihedrals (each expressed as an equivalent atomic displacement)
 reaches only AUC $0.59$, because the many soft, periodic dihedral coordinates
-flood the metric; restricted to bonds and angles it recovers to $0.74$, still
+flood the metric; restricted to bonds and angles it recovers to AUC $0.74$, still
 below Cartesian RMSD. Weighting the coordinate types by the optimizer's own
 default initial-Hessian stiffnesses ($0.5$, $0.2$, $0.1$ for stretches, bends and
-torsions) as a harmonic-energy metric does not help either ($0.61$): dihedrals are
+torsions) as a harmonic-energy metric does not help either (AUC $0.61$): dihedrals are
 downweighted per coordinate but far outnumber the bonds, so their summed
 contribution still dominates. The result is unchanged when the metric is built on ORCA's \emph{exact} redundant
 internal coordinates, parsed from the optimization logs rather than reconstructed
-($0.60$ against $0.59$ for our bond-graph set). Added to the displacement-weighted
-RMSD, internal-coordinate deviations raise the cross-validated area under the curve
+(AUC $0.60$ against $0.59$ for our bond-graph set). Added to the displacement-weighted
+RMSD, internal-coordinate deviations raise the cross-validated AUC
 from $0.839$ to $0.844$, within the fold-to-fold noise ($\pm 0.02$). Internal
 coordinates -- even the optimizer's own DOFs, weighting, and representation --
 thus carry no convergence information the Cartesian metric lacks.
 
-Nor is the limit specific to \emph{geometric} information. An electronic
-descriptor -- the deviation of the guess's Mayer bond orders from the reference,
-read from the same DFT output -- reaches AUC $0.70$ and, added to the
-displacement-weighted RMSD, again raises the cross-validated area under the curve
+The limit is not specific to \emph{geometric} information either. An electronic
+descriptor -- the deviation of the guess's Mayer bond orders~\cite{Mayer1983,Mayer2007}
+from the reference, read from the same DFT output -- reaches AUC $0.70$ and, added to the
+displacement-weighted RMSD, again raises the cross-validated AUC
 only within noise ($0.839$ to $0.844$). Reaction-level features computed from the
 reactant and product alone (their geometric separation, reaction energy, and
 total bond reorganization) predict convergence more weakly still (best single
 feature, the $R{\to}P$ displacement, AUC $0.70$); the reaction energy is
-uninformative ($0.46$). These describe how demanding a reaction is on average, not
+uninformative (AUC $0.46$). These describe how demanding a reaction is on average, not
 whether a particular guess lies in a saddle basin, and so cannot exceed the
 guess-based ceiling.
 
@@ -412,7 +416,7 @@ GFN2-xTB force (guess) & 0.785 & \textbf{no} \\
 Deployable random forest & 0.791 & \textbf{no} \\
 \bottomrule
 \end{tabular}
-\caption{Every guess-quality measure saturates in the band $0.77$--$0.84$. Deployable
+\caption{Every guess-quality measure saturates in the AUC band $0.77$--$0.84$. Deployable
 semi-empirical descriptors match oracle RMSD without a reference structure.}
 \label{tab:auc}
 \end{table}
@@ -433,7 +437,14 @@ Of $239$ failures, $142$ ($59\%$) do not converge, $92$ ($38\%$) converge to a
 alternative saddles the median energy difference from the reference is
 $131$~kJ\,mol$^{-1}$, and $77\%$ are \emph{lower} in energy; only $13\%$ lie within
 $4.8$~kJ\,mol$^{-1}$ of the
-reference (symmetry-equivalent artifacts). A third of what the metric calls
+reference (symmetry-equivalent artifacts). These are bare r$^2$SCAN-3c electronic
+energies, and we do not offer them as accurate barrier heights: a composite DFT
+method is chosen here for consistent geometries and Hessians at tractable cost,
+not for thermochemistry, and no zero-point, thermal, or higher-level correction is
+applied. The claim they support is the ordinal one -- that the alternative saddle
+is a different stationary point, usually the lower one -- and the gaps involved are
+an order of magnitude larger than the errors such a method is expected to make.
+A third of what the metric calls
 failure is therefore the optimizer locating a genuine, usually more stable,
 TS that the reference database simply does not contain. This is
 consistent with reports from the generative-model literature itself: TSDiff, for
@@ -530,37 +541,41 @@ cannot determine the outcome, because outcomes spanning $33\%$ to $98\%$ share
 the same distance.}
 
 Controlling direction as well recovers part, but only part, of the lost
-discrimination. Pooled over directions, the area under the curve for displacement
+discrimination. Pooled over directions, the AUC for displacement
 predicting failure to return is $0.770$ (Transition1x) and $0.757$
-(Reaction-QM); restricted to a single direction it rises to $0.828$ and $0.822$.
-Direction-blindness thus costs roughly $0.06$ in area under the curve -- a real
+(Reaction-QM); restricted to a single direction it rises to AUC $0.828$ and $0.822$.
+Direction-blindness thus costs roughly $0.06$ in AUC -- a real
 but modest penalty, and far from the whole gap to a perfect predictor. The
 residue is the point: even with the distance controlled to $10^{-3}$~\AA, the
 direction held fixed, and the reference saddle identical, displacement predicts
 return only at AUC $\approx 0.83$. That is essentially the value reached by the
 best purely geometric measure on real predictions (displacement-weighted RMSD,
-$0.839$, Table~\ref{tab:weights}).
+AUC $0.839$, Table~\ref{tab:weights}).
 
 Because these displacements are drawn from a small set of prescribed lengths,
-almost every pair of trials is tied in distance; areas under the curve are
+almost every pair of trials is tied in distance; AUC values are
 therefore computed with mid-ranks, without which ties are broken arbitrarily and
 the statistic becomes meaningless.
 
-The experiment was repeated at the working level of theory to confirm that it is
-not an artifact of the semi-empirical surface: $320$ additional r$^2$SCAN-3c
-saddle optimizations on $40$ Transition1x reactions, with the displacement
-directions taken from the reference DFT Hessians rather than recomputed. The
-direction effect reproduces ($98\%$ return along the softest vibration against
-$28\%$ along the reaction mode at $0.20$~\AA; $p=3\times10^{-8}$ and
-$8\times10^{-14}$ at the two displacements). Compared like for like -- the same
-$40$ reactions and the same two displacements -- the two levels of theory agree
-to within $0.01$ in area under the curve (pooled $0.651$ at r$^2$SCAN-3c against
-$0.665$ at GFN2-xTB; within-direction $0.711$ against $0.722$), so the
-semi-empirical surface is a faithful proxy here and the larger xTB sample can
-carry the statistical weight. The lower absolute values in this comparison are
-themselves an instance of the range effect of Section~\ref{sec:rqm}: restricting
-the same xTB data from four displacements to two moves the within-direction area
-from $0.828$ to $0.702$.
+The anisotropy could still be an artifact of the semi-empirical surface. We
+tested that directly, repeating the experiment at the working level of theory:
+$320$ additional r$^2$SCAN-3c saddle optimizations on $40$ Transition1x
+reactions, with the displacement directions taken from the reference DFT Hessians
+rather than recomputed. The direction effect reproduces. At $0.20$~\AA\ the
+return rate is $98\%$ along the softest vibration against $28\%$ along the
+reaction mode ($p=3\times10^{-8}$ and $8\times10^{-14}$ at the two
+displacements).
+
+The two levels agree quantitatively as well. Compared like for like -- the same
+$40$ reactions, the same two displacements -- their AUCs differ by at most
+$0.01$: pooled over directions, $0.651$ at r$^2$SCAN-3c against $0.665$ at
+GFN2-xTB; within a fixed direction, $0.711$ against $0.722$. The semi-empirical
+surface is therefore a faithful proxy here, and the larger xTB sample can carry
+the statistical weight. These absolute values are lower than those quoted above,
+but only because the comparison rests on two displacements instead of four. That
+is the range effect of Section~\ref{sec:rqm} again: restricting the same xTB data
+to those two displacements moves the within-direction AUC from $0.828$ to
+$0.702$.
 
 Two independent routes therefore arrive at the same number. This is the
 mechanism. The ceiling is not an artifact of metric design, nor merely of RMSD's
@@ -568,7 +583,7 @@ blindness to direction, nor of noise in the predictors: it survives an experimen
 in which all three are eliminated or controlled by construction. What remains is
 irreducible variation between reactions in how large a basin their saddle
 possesses -- a property of the potential energy surface that no measurement of
-the guess geometry can access. Metrics saturate near $0.83$ because that is where
+the guess geometry can access. Metrics saturate near AUC $0.83$ because that is where
 the information in a guess geometry runs out, and the best of them already
 operates at that limit.
 
@@ -608,11 +623,11 @@ distribution; the shaded band is the Transition1x interquartile range of guess
 deviation, used to match the two datasets. (b) Downstream success against guess
 deviation: at every matched deviation Reaction-QM succeeds less often, so a
 threshold calibrated on one database does not transfer to the other. (c) The
-apparent improvement in discrimination on Reaction-QM ($0.92$) is an artifact of
+apparent improvement in discrimination on Reaction-QM (AUC $0.92$) is an artifact of
 its much wider deviation range; restricted to the matched band it falls to
-$0.61$, statistically indistinguishable from both the Transition1x value and from
+AUC $0.61$, statistically indistinguishable from both the Transition1x value and from
 chance. Error bars are binomial standard errors in (b) and $95\%$ bootstrap
-confidence intervals in (c).}
+confidence intervals in (c). All values in (c) are AUCs.}
 \label{fig:generalization}
 \end{figure}
 
@@ -623,9 +638,9 @@ Section~\ref{sec:ceiling} had been broken. It has not. That figure is an artifac
 of range: discrimination is trivially easier when the guesses span a wide quality
 range ($0.74$--$1.33$~\AA\ interquartile) than a narrow one
 ($0.25$--$0.54$~\AA). Restricting the Reaction-QM guesses to the Transition1x
-interquartile range removes the advantage entirely -- the area under the curve
+interquartile range removes the advantage entirely -- the AUC
 falls to $0.61$ ($95\%$ bootstrap confidence interval $0.42$--$0.80$, $n=53$),
-statistically indistinguishable from both the Transition1x value of $0.73$
+statistically indistinguishable from both the Transition1x AUC of $0.73$
 ($0.66$--$0.81$) and from chance. Geometric similarity to the reference
 TS is therefore no more predictive on a harder and chemically
 broader database than on the one the conclusion was drawn from; if anything the
@@ -845,6 +860,177 @@ compact JSON by \texttt{reduce\_batch.py} / \texttt{reduce\_ladder.py}. RitS
 guesses and reference-free selectors are produced by \texttt{run\_rits.py} and
 \texttt{rits\_selectors.py}.
 \end{sloppypar}
+
+\appendix
+
+\section{Definitions of the metrics}
+\label{app:metrics}
+
+Throughout, a structure of $N$ atoms is a set of Cartesian coordinates
+$\mathbf{X}=\{\mathbf{x}_i\}_{i=1}^{N}\subset\mathbb{R}^{3}$. We write
+$\mathbf{X}^{g}$ for the guess, $\mathbf{X}^{\ddagger}$ for the reference saddle,
+and $\mathbf{X}^{R}$, $\mathbf{X}^{P}$ for the reactant and product minima, all at
+r$^2$SCAN-3c and in a fixed atom ordering.
+
+\subsection{Alignment and the per-atom deviation}
+Let $\mathcal{K}(\mathbf{X};\mathbf{Y})$ denote the Kabsch superposition of
+$\mathbf{X}$ onto $\mathbf{Y}$: the rigid motion $\mathbf{x}\mapsto
+\mathbf{R}(\mathbf{x}-\bar{\mathbf{x}})+\bar{\mathbf{y}}$ whose rotation
+$\mathbf{R}\in SO(3)$ minimizes $\sum_i\lVert\cdot-\mathbf{y}_i\rVert^{2}$. The
+per-atom deviation of a guess from the reference is
+\begin{equation}
+\mathbf{d}_i \;=\; \bigl[\mathcal{K}(\mathbf{X}^{g};\mathbf{X}^{\ddagger})\bigr]_i
+- \mathbf{x}^{\ddagger}_i ,
+\qquad
+\boldsymbol{\delta} = \bigl(\mathbf{d}_1,\dots,\mathbf{d}_N\bigr)\in\mathbb{R}^{3N}.
+\end{equation}
+Because the multidimensional-scaling embedding fixes chirality arbitrarily, the
+mirror image $\mathbf{X}^{g}\!\cdot\mathrm{diag}(-1,1,1)$ is also aligned and
+whichever of the two gives the smaller RMSD is used; for an achiral reaction the
+two describe the same saddle. Every Cartesian measure below is built from the
+same $\{\mathbf{d}_i\}$, so differences between them are differences of weighting,
+not of alignment.
+
+\subsection{Cartesian measures}
+\begin{align}
+\text{RMSD} &= \sqrt{\tfrac{1}{N}\textstyle\sum_{i}\lVert\mathbf{d}_i\rVert^{2}}, \\
+\text{RSD (un-normalized)} &= \sqrt{\textstyle\sum_{i}\lVert\mathbf{d}_i\rVert^{2}}
+ \;=\; \sqrt{N}\,\text{RMSD}, \\
+\text{RMSD}_{\mathcal{A}} &= \sqrt{\tfrac{1}{\lvert\mathcal{A}\rvert}
+ \textstyle\sum_{i\in\mathcal{A}}\lVert\mathbf{d}_i\rVert^{2}} \quad
+ \text{(reactive atoms only)} .
+\end{align}
+The reactive set $\mathcal{A}$ contains every atom whose row of the covalent
+adjacency matrix differs between reactant and product,
+$\mathcal{A}=\{\,i : \exists j,\ b^{R}_{ij}\neq b^{P}_{ij}\,\}$, with
+$\mathcal{A}=\{1,\dots,N\}$ in the degenerate case $\mathcal{A}=\emptyset$.
+
+The weighted family (Table~\ref{tab:weights}) is
+\begin{equation}
+\text{RMSD}_{w} \;=\;
+\sqrt{\frac{\sum_i w_i\,\lVert\mathbf{d}_i\rVert^{2}}{\sum_i w_i}},
+\label{eq:wrmsd}
+\end{equation}
+with the four weightings
+\begin{align}
+\text{uniform:}&\quad w_i = 1, \\
+\text{graph decay:}&\quad w_i = e^{-g_i/\tau}, \quad
+ g_i = \min_{a\in\mathcal{A}} d_{\mathrm{graph}}(i,a), \\
+\text{Euclidean decay:}&\quad w_i = e^{-e_i/\tau}, \quad
+ e_i = \min_{a\in\mathcal{A}} \lVert\mathbf{x}^{R}_i-\mathbf{x}^{R}_a\rVert, \\
+\text{displacement:}&\quad w_i = \bigl\lVert
+ [\mathcal{K}(\mathbf{X}^{P};\mathbf{X}^{R})]_i-\mathbf{x}^{R}_i \bigr\rVert .
+\label{eq:dispw}
+\end{align}
+Here $d_{\mathrm{graph}}$ is the bond-count distance in the reactant covalent
+graph and $\tau=2$ (bonds, and \AA\ respectively). Only the displacement
+weighting~\eqref{eq:dispw} is free of both a decay constant and an explicit
+reactive-atom set, which is the sense in which it is called parameter-free; it is
+the measure that reaches AUC $0.839$.
+
+\subsection{Distance-matrix measures}
+With $D_{ij}=\lVert\mathbf{x}_i-\mathbf{x}_j\rVert$ (rotation- and
+translation-invariant, so no alignment is needed),
+\begin{align}
+\text{D-MAE} &= \frac{2}{N(N-1)}\sum_{i<j}
+ \bigl\lvert D^{g}_{ij}-D^{\ddagger}_{ij}\bigr\rvert, \\
+\text{D-MAE}_{w} &= \frac{\sum_{i<j} w_{ij}\bigl\lvert D^{g}_{ij}-D^{\ddagger}_{ij}\bigr\rvert}
+ {\sum_{i<j} w_{ij}},
+ \qquad w_{ij} = \bigl\lvert D^{P}_{ij}-D^{R}_{ij}\bigr\rvert ,
+\end{align}
+the change-weighted form giving near-zero weight to spectator pairs without an
+arbitrary active/inactive threshold.
+
+\subsection{Reaction-coordinate projection}
+Let $\hat{\mathbf{v}}\in\mathbb{R}^{3N}$ be the normalized imaginary-frequency
+eigenvector of the reference saddle. The aligned error splits as
+\begin{equation}
+e_{\parallel} = \bigl\lvert \boldsymbol{\delta}\cdot\hat{\mathbf{v}}\bigr\rvert,
+\qquad
+e_{\perp} = \bigl\lVert \boldsymbol{\delta}-(\boldsymbol{\delta}\cdot
+\hat{\mathbf{v}})\,\hat{\mathbf{v}}\bigr\rVert,
+\qquad
+e_{\parallel}^{2}+e_{\perp}^{2} = N\,\text{RMSD}^{2} .
+\end{equation}
+Both are norms of the full $3N$-vector in \AA ngstr\"om, i.e.\ not divided by
+$\sqrt{N}$.
+
+\subsection{Internal-coordinate deviation}
+Redundant internals $q$ -- bonds $r_{ij}$, angles $\theta_{ijk}$, dihedrals
+$\phi_{ijkl}$ -- are enumerated from the union of the reactant and product bond
+graphs, so forming and breaking bonds are included. Angular deviations are
+converted to an equivalent atomic displacement by the local bond length
+(Wilson-$B$ principle), so that all coordinates share units of \AA ngstr\"om:
+\begin{equation}
+\Delta_{q} =
+\begin{cases}
+\lvert r^{g}_{ij}-r^{\ddagger}_{ij}\rvert, & \text{bonds},\\[2pt]
+r^{\ddagger}_{ij}\,\lvert \theta^{g}-\theta^{\ddagger}\rvert, & \text{angles},\\[2pt]
+r^{\ddagger}_{kl}\,\lvert \mathrm{wrap}(\phi^{g}-\phi^{\ddagger})\rvert, & \text{dihedrals},
+\end{cases}
+\qquad
+w_{q} = \bigl\lvert q^{P}-q^{R}\bigr\rvert ,
+\end{equation}
+with $\mathrm{wrap}(x)=((x+\pi)\bmod 2\pi)-\pi$ and dihedrals discarded when
+either defining angle lies within $20^{\circ}$ of $0$ or $\pi$. The
+parameter-free internal metric pools all coordinate types into a single
+change-weighted RMS, $\sqrt{\sum_q w_q\Delta_q^{2}/\sum_q w_q}$, in exact analogy
+with~\eqref{eq:wrmsd}. The harmonic-energy variant instead forms per-type RMS
+values $M_{\mathrm{bond}}$, $M_{\mathrm{ang}}$, $M_{\mathrm{dih}}$ and combines
+them as $\sum_t c_t M_t$ with the optimizer's default initial-Hessian stiffnesses
+$(c_{\mathrm{bond}},c_{\mathrm{ang}},c_{\mathrm{dih}})=(0.5,0.2,0.1)$.
+
+\subsection{Electronic deviation: Mayer bond orders}
+With $B_{ij}$ the Mayer bond order~\cite{Mayer1983,Mayer2007} of the pair $(i,j)$
+-- taken from the first Mayer block of the guess optimization log and the last
+block of the converged reference, reactant and product -- the oracle electronic
+metric is the change-weighted RMS deviation
+\begin{equation}
+M_{\mathrm{MBO}} = \sqrt{\frac{\sum_{i<j} w_{ij}\bigl(B^{g}_{ij}-B^{\ddagger}_{ij}\bigr)^{2}}
+{\sum_{i<j} w_{ij}}},
+\qquad w_{ij}=\bigl\lvert B^{P}_{ij}-B^{R}_{ij}\bigr\rvert ,
+\end{equation}
+pairs absent from a printed block (order below $0.1$) being treated as $B_{ij}=0$.
+
+\subsection{Deployable descriptors}
+These use only the guess and the two endpoints. With GFN2-xTB forces
+$\mathbf{F}_i$ and energy $E$ evaluated at the guess geometry,
+\begin{equation}
+F_{\max} = \max_{i,\alpha}\lvert F_{i\alpha}\rvert,
+\qquad
+F_{\mathrm{rms}} = \sqrt{\tfrac{1}{3N}\textstyle\sum_{i,\alpha}F_{i\alpha}^{2}},
+\qquad
+\Delta E_{\uparrow} = E^{g}-\max\bigl(E^{R},E^{P}\bigr),
+\end{equation}
+together with $\Delta E_{gR}=E^{g}-E^{R}$ and $\Delta E_{gP}=E^{g}-E^{P}$. The
+force norm reported in Table~\ref{tab:auc} is $F_{\max}$. The deployable random
+forest additionally uses reference-free geometric features: $\text{RMSD}(g,R)$,
+$\text{RMSD}(g,P)$, their absolute difference, $\text{RMSD}(R,P)$, the
+corresponding D-MAEs, $N$, and the fraction of interatomic distances of the guess
+lying outside the interval spanned by the endpoints,
+$\lvert\{(i,j): D^{g}_{ij}\notin[\min(D^{R}_{ij},D^{P}_{ij})-\epsilon,
+\max(D^{R}_{ij},D^{P}_{ij})+\epsilon]\}\rvert / \binom{N}{2}$ with
+$\epsilon=0.1$~\AA.
+
+\subsection{Success and the area under the ROC curve}
+A guess is a \textit{success} if the saddle optimization converges, the resulting
+structure has exactly one imaginary frequency, and its Kabsch RMSD to the
+reference saddle is below $0.3$~\AA; \textit{convergence} drops the third
+condition. For a measure $m$ evaluated on the success set $\mathcal{S}$ and the
+failure set $\mathcal{F}$, the reported area under the ROC curve is the
+Mann--Whitney statistic with mid-ranks,
+\begin{equation}
+\mathrm{AUC} = \frac{1}{\lvert\mathcal{S}\rvert\,\lvert\mathcal{F}\rvert}
+\sum_{s\in\mathcal{S}}\sum_{f\in\mathcal{F}}
+\Bigl[\mathbf{1}\bigl(m_f>m_s\bigr)+\tfrac{1}{2}\mathbf{1}\bigl(m_f=m_s\bigr)\Bigr],
+\end{equation}
+i.e.\ the probability that a randomly drawn failure is assigned a larger error
+than a randomly drawn success, with ties counted as one half. The tie term is
+what makes the statistic meaningful in the controlled-displacement experiment
+(Section~\ref{sec:ladder}), where the prescribed step lengths tie almost every
+pair of trials. AUC is invariant under any strictly monotone rescaling of $m$ and
+needs no decision threshold, which is why measures with incommensurable units --
+\AA ngstr\"om, bond orders, forces -- can be compared on one axis.
 
 \bibliographystyle{unsrt}
 \bibliography{refs}
