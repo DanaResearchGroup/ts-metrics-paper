@@ -430,14 +430,12 @@ Deployable random forest & 0.791 & \textbf{no} \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/raincloud_by_outcome.png}
-\caption{Guess-quality measures separate converged from failed optimizations only
-weakly. Rainclouds (half-violin, box with white median, and per-guess points)
-compare the converged ($n=216$) and ``failed'' ($n=184$) classes for three
-representative measures: (a) Kabsch RMSD, (b) D-MAE, and (c) the deployable
-GFN2-xTB rms force on the guess (failed $n=183$). Class medians shift in the
-expected direction, but the distributions overlap heavily -- low-metric guesses
-fail while high-metric guesses converge -- so no fixed cutoff cleanly separates
-usable from unusable guesses.}
+\caption{Rainclouds (half-violin, box with white median, and per-guess points)
+comparing the converged ($n=216$) and ``failed'' ($n=184$) classes for three
+representative guess-quality measures: (a) Kabsch RMSD, (b) D-MAE, and (c) the
+deployable GFN2-xTB rms force on the guess (failed $n=183$). Class medians shift
+in the expected direction while the distributions overlap across most of their
+range.}
 \label{fig:dist}
 \end{figure}
 
@@ -751,8 +749,8 @@ alternative saddles and were removed.
 
 However, assigning the remaining endpoints to a chemical species proved
 not robust. Four reasonable identity criteria -- covalent adjacency
-graph, InChI, graph isomorphism as implemented in RMG (as used by the Automated Rate Calculator,
-ARC~\cite{ARC}), and canonical SMILES -- returned between
+graph, InChI~\cite{Heller2015}, graph isomorphism as implemented in RMG (as used by the Automated Rate Calculator,
+ARC~\cite{ARC}), and canonical SMILES~\cite{Weininger1988} -- returned between
 $6\%$ and $91\%$ ``same reaction'' on the identical set of endpoints. Manual
 inspection identified three specific algorithmic blind spots, all aggravated by
 the open-shell character of many Transition1x species. First, \emph{radical-center
