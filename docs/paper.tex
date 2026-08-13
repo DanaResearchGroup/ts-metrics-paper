@@ -372,7 +372,7 @@ is uninformative (AUC $0.460$). These describe how demanding a reaction is on av
 whether a particular guess lies in a saddle basin, and so cannot exceed the
 guess-based ceiling.
 
-Crucially, the limit is not an artifact of choosing a single metric. A random
+The limit is not an artifact of choosing a single metric. A random
 forest over all eight geometric measures (the five geometric rows of
 Table~\ref{tab:auc} and the three weighted variants of Table~\ref{tab:weights})
 reaches AUC $0.829$, no higher than the single displacement-weighted RMSD, and
@@ -678,14 +678,15 @@ lift for a modern machine-learned generator. We therefore repeated the analysis
 with RitS~\cite{RitS}, a recent flow-matching TS generator that takes the
 reactant and product geometries and emits a predicted saddle. We use the authors'
 released checkpoint, which is not trained on Transition1x, so our evaluation
-carries no train--test leakage. Two limits of the tool bound its coverage and are
-reported rather than hidden: it supports only the elements C, H, N, O, S, F, P
-(removing $96$ of the $200$ Reaction-QM reactions), and its bond perception from
-Cartesian input fails outright on $16$ of $200$ Transition1x and $7$ of the
-remaining $104$ Reaction-QM reactions, leaving $184$ and $97$ reactions.
+carries no train--test leakage. Two limitations of the tool reduce our
+coverage. It supports only the elements C, H, N, O, S, F, P, which removes $96$
+of the $200$ Reaction-QM reactions, and its bond perception from
+Cartesian input fails outright on a further $16$ Transition1x and $7$ Reaction-QM
+reactions. The analysis therefore covers $184$ of $200$ Transition1x and $97$ of
+$200$ Reaction-QM reactions.
 
-The first observation is that the generator is stochastic: each call draws
-an independent sample, and the ten draws for a single reaction span a median
+RitS is stochastic: each call draws
+an independent sample, and the ten draws we took per reaction span a median
 range of $0.67$~\AA\ on Transition1x (Fig.~\ref{fig:generative}a) -- wider than
 the entire spread between the methods compared in the rest of this paper. This
 makes the choice of what to report decisive. The single draw a user actually
@@ -792,34 +793,30 @@ criteria in Section~\ref{sec:irc}.}
 
 \section{Discussion}
 
-\paragraph{Cartesian distance is a flawed proxy for surface topology.}
 RMSD and D-MAE measure proximity to \emph{one} recorded saddle, whereas what a
 practitioner needs is that the guess lie in the basin of attraction of \emph{a}
 valid saddle connecting reactant and product -- a topological property. The two
 notions coincide only when the reference is the unique relevant saddle, which we
-find fails roughly a third of the time.
+find fails roughly a third of the time. Interpolation guesses routinely optimize
+to lower-energy saddles ($77\%$ of the alternative-saddle cases) absent from
+Transition1x, so a geometrically ``wrong'' prediction frequently reaches a more
+stable TS. Benchmarking against a single reference therefore rewards a model for
+reproducing the database's particular saddle choice rather than for locating a
+valid, possibly better, TS -- even though, for these open-shell endpoints, we
+cannot robustly determine whether each lower saddle belongs to the same reaction,
+a stepwise variant, or a different one (Section~\ref{sec:irc}).
 
-\paragraph{Reference databases are energetically skewed.}
-Interpolation guesses routinely optimize to lower-energy saddles ($77\%$ of the
-alternative-saddle cases) absent from Transition1x. A geometrically ``wrong''
-prediction frequently reaches a more stable TS. Benchmarking
-against a single reference rewards a model for reproducing the database's
-particular saddle choice rather than for locating a valid, possibly better,
-TS -- even though (Section~\ref{sec:irc}) we cannot robustly
-determine, for these open-shell endpoints, whether each lower saddle belongs to
-the same reaction, a stepwise variant, or a different one.
-
-\paragraph{Local optimizers are Hessian-blind.}
-A quasi-Newton saddle-point optimizer only ever sees the local Hessian; from a
+The mechanism lies in the optimizer. A quasi-Newton saddle-point optimizer only
+ever sees the local Hessian; from a
 given guess it walks to whichever saddle the local curvature indicates, which need
 not be the closest in RMSD nor the reference. This is why no function of the guess
 geometry predicts convergence beyond AUC $\approx 0.84$: the outcome is fixed by
-the surface, not the guess. Our controlled-displacement experiment makes this
+the surface, not the guess. The controlled-displacement experiment makes this
 concrete -- direction at fixed distance swings the outcome from $33\%$ to $98\%$,
 and even the direction-controlled ceiling matches the best real metric -- so the
 saturation is an information limit, not a modeling artifact.
 
-\paragraph{For generative models the ceiling becomes a selection problem.}
+For generative models the ceiling reappears as a selection problem.
 A stochastic generator can place a good saddle among its samples far more often
 than any single draw suggests: for RitS the oracle best of ten roughly triples
 the deployable success rate. But choosing that sample requires the reference, and
@@ -831,16 +828,16 @@ than ranking it first without an oracle, and the gap between them is a general
 bottleneck of generative models, not a quirk of RitS. Best-of-$N$ evaluation
 therefore measures the wrong quantity: it credits a model for a sample it cannot
 identify without the answer, and overstates deployable performance by about
-threefold. The honest figure is the expected quality of a single draw, or
+threefold. The figure to report is the expected quality of a single draw, or
 of a draw selected by a genuinely reference-free rule.
 
-\paragraph{Toward better objectives.}
-The community should (i)~report convergence rate and IRC connectivity rather than
-RMSD/D-MAE; (ii)~score against any valid reactant$\rightarrow$product
-saddle rather than a single reference; (iii)~for stochastic generators, report
+Four changes to evaluation practice follow. Report convergence rate and IRC
+connectivity rather than
+RMSD/D-MAE; score against any valid reactant$\rightarrow$product
+saddle rather than a single reference; for stochastic generators, report
 single-draw or reference-free-selected quality rather than oracle best-of-$N$; and
-(iv)~explore topological or energy-derivative-free training objectives (for
-instance a force-norm or saddle-character penalty) that reward residence in a
+explore topological or energy-derivative-free training objectives -- a force-norm
+or saddle-character penalty, for instance -- that reward residence in a
 saddle basin over proximity to a particular geometry. For a cheap convergence
 proxy at scale, a GFN2-xTB force descriptor on the guess is about as informative
 as oracle RMSD and needs no reference structure.
@@ -869,7 +866,7 @@ benchmarked by surface behavior -- convergence, and where determinable,
 connectivity -- not by Cartesian distance, and generative models by the quality of
 a single or reference-free-selected draw rather than an oracle best-of-$N$. That
 determining connectivity is itself hard for open-shell reaction networks only
-underscores that geometric distance is the wrong yardstick.
+strengthens the case that geometric distance is the wrong yardstick.
 
 \section*{Data and code}
 \begin{sloppypar}
