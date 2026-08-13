@@ -669,12 +669,13 @@ The one result that does replicate is the predictor ordering: the bond-order
 predictor again edges out the midpoint baseline ($7\%$ vs $5\%$ success), the
 same direction and the same negligible magnitude as before.
 
-\subsection{The ceiling in a state-of-the-art generative model}
+\subsection{The ceiling in a generative model}
 \label{sec:generative}
-The predictors studied so far are deliberately simple. A natural objection is
-that the ceiling is a property of weak, interpolation-based guesses and would
+The predictors studied so far are deliberately simple, so the AUC $\approx 0.84$
+ceiling on predicting the optimization outcome from the guess might be a property
+of those weak, interpolation-based guesses rather than of the problem, and would
 lift for a modern machine-learned generator. We therefore repeated the analysis
-with RitS~\cite{RitS}, a flow-matching TS generator that takes the
+with RitS~\cite{RitS}, a recent flow-matching TS generator that takes the
 reactant and product geometries and emits a predicted saddle. We use the authors'
 released checkpoint, which is not trained on Transition1x, so our evaluation
 carries no train--test leakage. Two limits of the tool bound its coverage and are
