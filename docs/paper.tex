@@ -478,10 +478,10 @@ rate -- precisely the regime where getting the right saddle, rather than
 one close in RMSD, is decisive.
 
 \subsection{Robustness of the ceiling}
-Three controls test whether the weak discrimination reflects how the problem was
-posed rather than a limit of the metrics: a weak predictor, a coarse binary
-outcome, or a confound between guess quality and the reaction itself. None of
-them accounts for it.
+The class overlap of Fig.~\ref{fig:dist} could be an artifact of the setup rather
+than a real limit: the predictor might be too weak, the binary outcome too coarse,
+or the metric confounded with the reaction itself. Three controls rule out each in
+turn.
 
 A better guess generator does not lift the ceiling. The bond-order predictor
 marginally outperforms the midpoint baseline (success $56\%$ vs $52\%$; $20.0$ vs
@@ -500,8 +500,9 @@ TS itself) converges in $\sim 5$ cycles against $\sim 20$ for the interpolated
 guesses, so the potential cost saving is large -- yet not predictable from
 Cartesian similarity.
 
-Restricting to low-RMSD guesses ($<0.28$~\AA), which ``should'' converge, and
-re-testing the reactant- and product-derived features of
+Restricting to low-RMSD guesses ($<0.28$~\AA) -- those that geometric similarity
+alone would deem good enough -- and re-testing the reactant- and product-derived
+features of
 Section~\ref{sec:ceiling}, no feature separates the $30$ failures from the $140$
 successes (all AUC $0.5$--$0.6$).
 Reaction-amplitude features that appear predictive over all guesses (AUC
@@ -514,13 +515,14 @@ structure.
 
 \subsection{Why the ceiling exists: a controlled displacement experiment}
 \label{sec:ladder}
-The results so far are correlational: guesses differ from the reference saddle in
-both magnitude and character at once, so a metric's failure could reflect a poor
-metric, a poor predictor, or an unforgiving surface. We separate these by
-constructing displacements whose distance is fixed by design. From each reference
-saddle -- first relaxed to a self-consistent GFN2-xTB saddle so that the
-experiment is internally consistent -- we step a prescribed Kabsch RMSD along
-four directions and repeat the saddle search: the imaginary reaction mode, the
+The above analysis indicates a correlational relationship: guesses differ from the
+reference saddle in the size and the direction of their displacement at once, so a
+metric's failure could reflect a poor metric or a poor predictor. We separate the
+two by constructing displacements whose distance is fixed by design. From each reference
+saddle -- first relaxed to a GFN2-xTB saddle so that the
+experiment is internally consistent -- we displace the geometry by a prescribed
+Kabsch RMSD along four directions and repeat the saddle search: the imaginary
+reaction mode, the
 softest real vibration, the stiffest vibration, and an isotropic Gaussian
 direction. Rigid-body components are projected out and the step length is solved
 numerically, so every trial sits at the requested distance to better than
