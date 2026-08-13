@@ -152,7 +152,6 @@ without already knowing the answer. Beneath the choice of error metric lies the
 following question: when the reference is only one of the many valid saddles a
 reaction can admit, does a guess's resemblance to that single structure tell us
 whether it is useful at all?
-
 The field has thus already begun to look past pure geometry; what it lacks is a
 demonstration of whether geometric similarity is merely incomplete or
 fundamentally bounded, and of what a criterion should measure once it is.
@@ -245,8 +244,12 @@ the metric itself or by the surface, we constructed guesses whose deviation was
 fixed by design rather than observed. Each reference saddle was re-optimized at the GFN2-xTB~\cite{Bannwarth2019}
 level with the Sella saddle-point optimizer~\cite{Hermes2022}, and the Hessian was
 computed there by finite differences. Displacement directions were taken as the imaginary mode, the softest
-and stiffest internal vibrations, and an isotropic Gaussian vector. Because Kabsch alignment removes rigid-body motion, the six translation/rotation
-modes were projected out of every direction before use. Without this projection, a
+and stiffest internal vibrations, and an isotropic Gaussian vector -- each
+Cartesian component drawn independently from a standard normal and the vector
+normalized, so that every orientation is equally likely. Because Kabsch alignment removes rigid-body motion, the six translation/rotation
+modes were projected out of every direction before use; nothing else was, so the
+isotropic vector was not orthogonalized against the imaginary mode and retains a
+component along it. Without this projection, a
 mode dominated by rotation produces a displacement an order of magnitude smaller
 than its nominal length. The step length was then solved by bisection so that the achieved Kabsch
 RMSD equaled the target; the achieved value was stored for every trial and checked
@@ -332,9 +335,7 @@ this motion-weighted RMSD: a parameter-free reweighting that lifts discriminatio
 above plain RMSD, and well above D-MAE (AUC $0.769$), to essentially the ceiling.
 Where a reference-based geometric score must be reported, it is therefore a better
 benchmark metric than the RMSD and D-MAE now standard in the literature -- though,
-as the rest of this section shows, still a bounded one.
-
-Finally, a
+as the rest of this section shows, still a bounded one. Finally, a
 random forest~\cite{Breiman2001} trained on purely deployable features (GFN2-xTB
 force and energy plus reactant/product geometry, with no reference TS) reaches
 AUC $0.791$ -- matching oracle RMSD without ever seeing the answer.
@@ -482,7 +483,6 @@ The class overlap of Fig.~\ref{fig:dist} could be an artifact of the setup rathe
 than a real limit: the predictor might be too weak, the binary outcome too coarse,
 or the metric confounded with the reaction itself. Three controls rule out each in
 turn.
-
 A better guess generator does not lift the ceiling. The bond-order predictor
 marginally outperforms the midpoint baseline (success $56\%$ vs $52\%$; $20.0$ vs
 $21.3$ optimization cycles, paired), but the effect is small, consistent with
@@ -524,53 +524,55 @@ experiment is internally consistent -- we displace the geometry by a prescribed
 Kabsch RMSD along four directions and repeat the saddle search: the imaginary
 reaction mode, the
 softest real vibration, the stiffest vibration, and an isotropic Gaussian
-direction. Rigid-body components are projected out and the step length is solved
+direction. The six rigid-body translation and rotation components are projected out
+of every direction, and the step length is solved
 numerically, so every trial sits at the requested distance to better than
 $10^{-3}$~\AA; the achieved distance is recorded for every trial and audited.
-A trial ``returns'' if the search converges to the same saddle within $0.3$~\AA.
+A trial ``returns'' if the search converges back to the original xTB saddle point
+within $0.3$~\AA. Because these displacements are drawn from a small set of
+prescribed lengths, almost every pair of trials is tied in distance; AUC values are
+therefore computed with mid-ranks, without which ties are broken arbitrarily and
+the statistic becomes meaningless.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/ladder.png}
-\caption{Controlled displacement from the reference saddle ($187$ and $186$
-reactions, ${\sim}3\,200$ trials per database). Every point at a given abscissa
-sits at an identical distance from the saddle -- verified to
-$10^{-3}$~\AA\ for every trial -- so the vertical spread is due to direction
-alone. Error bars are binomial standard errors.}
+\caption{Return rates to the original saddle from controlled displacements
+($187$ and $186$
+reactions, ${\sim}3\,200$ trials per database). Points with the same displacement
+from the reference saddle differ only in the direction of that displacement, so
+the vertical spread is due to direction alone. Error bars are binomial standard
+errors.}
 \label{fig:ladder}
 \end{figure}
 
 At a fixed displacement of $0.20$~\AA, the return rate ranges from $33\%$ along
 the reaction mode to $98\%$ along the softest vibration on Transition1x, and from
 $22\%$ to $96\%$ on Reaction-QM (Fig.~\ref{fig:ladder}); direction-independence
-is rejected overwhelmingly at every displacement in both databases ($\chi^2$ on
-$3$ degrees of freedom, $p<10^{-16}$ throughout, reaching $p=6\times10^{-36}$).
+is rejected at every displacement in both databases ($\chi^2$ on the
+$4\times2$ table of direction against return, $3$ d.o.f., $p<10^{-16}$
+throughout).
 The ordering is physically sensible and identical across the two databases: the
 reaction mode is the unstable direction and leaves the basin fastest, while the
 softest vibration is the most forgiving. This anisotropy is what the topology of a
 saddle region predicts -- reaction paths curve, branch, and pass through
 valley-ridge inflections~\cite{Maeda2015}, so displacement along the unstable
 eigenvector escapes the basin far sooner than an equal step along a soft
-orthogonal mode. \emph{Cartesian distance therefore
-cannot determine the outcome, because outcomes spanning $33\%$ to $98\%$ share
-the same distance.}
+orthogonal mode. At a fixed distance, direction alone swings the return rate from
+$33\%$ to $98\%$. Cartesian distance therefore does not determine the outcome, and
+no measure built on distance alone can.
 
-Controlling direction as well recovers part, but only part, of the lost
-discrimination. Pooled over directions, the AUC for displacement
+Holding direction fixed as well recovers about $0.06$ in AUC. Pooled over
+directions, the AUC for displacement
 predicting failure to return is $0.770$ (Transition1x) and $0.757$
-(Reaction-QM); restricted to a single direction it rises to AUC $0.828$ and $0.822$.
-Direction-blindness thus costs roughly $0.06$ in AUC -- a real
+(Reaction-QM); restricted to a single direction it rises to $0.828$ and $0.822$.
+Direction-blindness is thus a real
 but modest penalty, and far from the whole gap to a perfect predictor. The
 residue is the point: even with the distance controlled to $10^{-3}$~\AA, the
 direction held fixed, and the reference saddle identical, displacement predicts
 return only at AUC $\approx 0.83$. That is essentially the value reached by the
 best purely geometric measure on real predictions (displacement-weighted RMSD,
 AUC $0.839$, Table~\ref{tab:weights}).
-
-Because these displacements are drawn from a small set of prescribed lengths,
-almost every pair of trials is tied in distance; AUC values are
-therefore computed with mid-ranks, without which ties are broken arbitrarily and
-the statistic becomes meaningless.
 
 The anisotropy could still be an artifact of the semi-empirical surface. We
 tested that directly, repeating the experiment at the working level of theory:
@@ -609,7 +611,7 @@ harshest of the four. Perturbing a reference structure isotropically therefore
 understates the success rate a real predictor would achieve at the same nominal
 deviation, and is not a neutral surrogate for predictor error.
 
-\subsection{Generalization to a second, harder database}
+\subsection{Generalization}
 \label{sec:rqm}
 All results above derive from a single database of small first-row organic
 reactions. To test whether they are an artifact of that chemistry, we repeated the
@@ -619,7 +621,9 @@ third-row elements (Si, P, S, Cl) and larger systems. Reference saddles behave a
 before ($197/200$ converged, all with exactly one imaginary frequency), so
 the comparison is not confounded by a poor reference.
 
-Three things change, and one does not (Fig.~\ref{fig:generalization}). First, the predictors degrade sharply
+Guess quality falls, downstream success collapses, and more of the converged
+guesses land on an alternative saddle
+(Fig.~\ref{fig:generalization}). First, the predictors degrade sharply
 out of distribution: the median guess deviation rises from $0.35$~\AA\ to
 $1.02$~\AA, and only $2$ of $400$ guesses fall below $0.3$~\AA\ (against $155$ of
 $400$ on Transition1x). Second, downstream success collapses from $54\%$ to
@@ -661,7 +665,6 @@ TS is therefore no more predictive on a harder and chemically
 broader database than on the one the conclusion was drawn from; if anything the
 mapping from deviation to outcome is itself database-dependent, so a threshold
 calibrated on one dataset does not transfer to another.
-
 The one result that does replicate is the predictor ordering: the bond-order
 predictor again edges out the midpoint baseline ($7\%$ vs $5\%$ success), the
 same direction and the same negligible magnitude as before.
@@ -758,7 +761,9 @@ tautomer of the reactant/product that the reference minimum does not match, and
 the two IRC branches occasionally invert, so reactant and product labels swap.
 The net effect is that a single species is repeatedly split into spurious
 ``intermediates'' (many carried a SMILES string identical to the product yet were
-flagged distinct; Fig.~\ref{fig:blind}). We therefore \emph{cannot} state with
+flagged distinct; Fig.~\ref{fig:blind}).
+
+We therefore cannot state with
 confidence whether the
 alternative saddles are concerted alternatives of the same reaction, genuine
 stepwise elementary steps, or saddles of different reactions. This is itself a
