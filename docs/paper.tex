@@ -28,51 +28,39 @@ positions, or by the mean absolute error of the interatomic-distance matrix
 (D-MAE), relative to a reference TS. We show that these Euclidean measures are
 unreliable proxies for the quantity a practitioner actually needs: whether a
 predicted geometry optimizes to a genuine TS at a target level of density
-functional theory.
-
-We optimized $520$ interpolation-based guesses for $260$ reactions from the
+functional theory. We optimized $520$ interpolation-based guesses for $260$ reactions from the
 Transition1x database~[Schreiner M., Sci.\ Data 2022, 9, 779] at the r$^2$SCAN-3c
 level. Every geometry-based quality measure -- Kabsch-aligned RMSD, D-MAE,
 a reaction-coordinate projection, and cheap semi-empirical descriptors --
 saturates in a narrow band of the area under the receiver-operating-characteristic
-curve (AUC), $0.77$--$0.84$, for predicting optimization success. About $14\%$ of
-low-RMSD guesses fail nonetheless.
+curve (AUC), $0.77$--$0.84$, for predicting optimization success, and about $14\%$
+of low-RMSD guesses fail nonetheless.
 
-Many of those ``failures'' are not failures at all. Of them, $38\%$ converge to a
-genuine but different first-order saddle point, and $77\%$ of those lie
-lower in energy than the reference (median difference
-$\sim 131$~kJ\,mol$^{-1}$). These are legitimate alternative TSs that a
-reference-matching metric penalizes as errors -- though whether each is an
-alternative, stepwise, or unrelated TS is, for these open-shell systems, beyond
-the reach of current automated structure perception. Once RMSD is held fixed, no
-structural property of the reactant or product distinguishes converging from
-failing guesses.
+Many of those ``failures'' are not failures at all: $38\%$ converge to a genuine
+but different first-order saddle point, and $77\%$ of those lie lower in energy
+than the reference (median difference $\sim 131$~kJ\,mol$^{-1}$) -- legitimate
+alternative TSs that a reference-matching metric penalizes as errors, though
+current automated structure perception cannot reliably tell which reaction each
+one belongs to. A controlled experiment identifies the cause. Displacing each
+reference saddle by a prescribed distance along different directions changes the
+probability of recovering it from $33\%$ to $98\%$, so distance alone cannot
+determine the outcome; yet once direction is held fixed as well, the ceiling
+persists at AUC $\approx 0.83$. The saturation is therefore an information
+ceiling, not a shortcoming of any metric: the best geometric measure we construct,
+a parameter-free displacement-weighted RMSD, already operates at that limit.
 
-A controlled experiment identifies the cause. Displacing each reference saddle by
-a prescribed distance along different directions changes the probability of
-recovering it from $33\%$ to $98\%$, so distance alone cannot determine the
-outcome. Yet once direction is held fixed as well, the ceiling persists at
-AUC $\approx 0.83$. The saturation is therefore an information ceiling, not a
-shortcoming of any metric: the best geometric measure we construct, a
-parameter-free displacement-weighted RMSD, already operates at that limit.
-
-The conclusions replicate on a second, chemically broader database, where
-discrimination at matched guess quality is no better than on Transition1x. They
-replicate on a state-of-the-art flow-matching generator too. There, oracle
-best-of-$N$ selection roughly triples the deployable single-draw success rate, yet
-no reference-free score recovers that gain, so reported best-of-$N$ figures
-overstate what a user obtains.
-
-Two consequences follow. First, a cheap GFN2-xTB force descriptor evaluated on the
-guess predicts convergence about as well as oracle RMSD and requires no reference
-structure -- useful precisely because the ceiling means nothing better is
-available. Second, the field needs a change of yardstick. We suggest judging a
-predicted TS by whether it optimizes to any valid reactant-to-product
-saddle -- its convergence and, where determinable, its connectivity -- rather than
-by its RMSD to a single reference, and, for stochastic generators, reporting the
-quality of a single draw or a reference-free-selected one rather than an oracle
-best-of-$N$. Such surface-based benchmarks would make reported progress reflect
-genuine usefulness rather than resemblance to one arbitrary database entry.
+The conclusions replicate on a second, chemically broader database, and on a
+state-of-the-art flow-matching generator, where oracle best-of-$N$ selection
+roughly triples the deployable single-draw success rate yet no reference-free
+score recovers that gain, so reported best-of-$N$ figures overstate what a user
+obtains. Two consequences follow. A cheap GFN2-xTB force descriptor evaluated on
+the guess predicts convergence about as well as oracle RMSD and requires no
+reference structure -- useful precisely because the ceiling means nothing better
+is available. And the field needs a change of yardstick: judging a predicted TS by
+whether it optimizes to any valid reactant-to-product saddle rather than by its
+RMSD to a single reference, and, for stochastic generators, reporting the quality
+of a single draw or a reference-free-selected one rather than an oracle
+best-of-$N$.
 \end{abstract}
 
 \section{Introduction}
