@@ -455,10 +455,12 @@ an order of magnitude larger than the errors such a method is expected to make.
 A third of what the metric calls
 failure is therefore the optimizer locating a genuine, usually more stable,
 TS that the reference database simply does not contain. This is
-consistent with reports from the generative-model literature itself: TSDiff, for
+consistent with reports from the generative-model literature itself: TSDiff~\cite{TSDiff}, for
 instance, was observed to sample TSs with lower barrier
-heights than the reference database~\cite{TSDiff}, which its RMSD-based evaluation
-scores as deviations rather than discoveries.
+heights than the reference database, which its RMSD-based evaluation
+scores as deviations rather than discoveries. What these saddles are chemically --
+and why that question is harder to answer than it looks -- is taken up in
+Section~\ref{sec:irc}.
 
 The magnitude matters kinetically: a median discrepancy of $\sim 131$~kJ\,mol$^{-1}$
 in barrier height maps to a factor of $\sim 10^{23}$ in the rate coefficient at
@@ -475,19 +477,17 @@ slip but discarding TSs whose barriers differ by tens of orders of magnitude in
 rate -- precisely the regime where getting the right saddle, rather than
 one close in RMSD, is decisive.
 
-\subsection{Convergence as a surface property}
-Restricting to low-RMSD guesses ($<0.28$~\AA), which ``should'' converge, and
-testing purely structural properties of the reactant and product, no feature
-separates the $30$ failures from the $140$ successes (all AUC $0.5$--$0.6$).
-Reaction-amplitude features that appear predictive over all guesses (AUC
-$0.65$--$0.68$) collapse to noise once RMSD is held fixed -- they predict failure
-only by making the guess worse, not independently. The residual failures are
-structurally indistinguishable from the successes -- the same class overlap seen
-across all guesses in Fig.~\ref{fig:dist}; their cause lies in the
-potential-energy surface (competing saddles, basins), not in the reaction's gross
-structure.
+\subsection{Robustness of the ceiling}
+Three controls test whether the weak discrimination reflects how the problem was
+posed rather than a limit of the metrics: a weak predictor, a coarse binary
+outcome, or a confound between guess quality and the reaction itself. None of
+them accounts for it.
 
-\subsection{Cost as a graded outcome}
+A better guess generator does not lift the ceiling. The bond-order predictor
+marginally outperforms the midpoint baseline (success $56\%$ vs $52\%$; $20.0$ vs
+$21.3$ optimization cycles, paired), but the effect is small, consistent with
+guess quality not being the limiting factor.
+
 Convergence is binary, but its cost -- the number of geometry-optimization
 cycles -- is graded, and offers a second, more forgiving test of the metrics.
 Over the guesses that do converge, the geometry measures correlate with the cycle
@@ -500,10 +500,17 @@ TS itself) converges in $\sim 5$ cycles against $\sim 20$ for the interpolated
 guesses, so the potential cost saving is large -- yet not predictable from
 Cartesian similarity.
 
-\subsection{Predictor comparison}
-The bond-order predictor marginally outperforms the midpoint baseline (success
-$56\%$ vs $52\%$; $20.0$ vs $21.3$ optimization cycles, paired), but the effect is
-small, consistent with guess quality not being the limiting factor.
+Restricting to low-RMSD guesses ($<0.28$~\AA), which ``should'' converge, and
+re-testing the reactant- and product-derived features of
+Section~\ref{sec:ceiling}, no feature separates the $30$ failures from the $140$
+successes (all AUC $0.5$--$0.6$).
+Reaction-amplitude features that appear predictive over all guesses (AUC
+$0.65$--$0.68$) collapse to noise once RMSD is held fixed -- they predict failure
+only by making the guess worse, not independently. The residual failures are
+structurally indistinguishable from the successes -- the same class overlap seen
+across all guesses in Fig.~\ref{fig:dist}; their cause lies in the
+potential-energy surface (competing saddles, basins), not in the reaction's gross
+structure.
 
 \subsection{Why the ceiling exists: a controlled displacement experiment}
 \label{sec:ladder}
