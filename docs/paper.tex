@@ -33,8 +33,8 @@ Transition1x database~[Schreiner M., Sci.\ Data 2022, 9, 779] at the r$^2$SCAN-3
 level. Every geometry-based quality measure -- Kabsch-aligned RMSD, D-MAE,
 a reaction-coordinate projection, and cheap semi-empirical descriptors --
 saturates in a narrow band of the area under the receiver-operating-characteristic
-curve (AUC), $0.77$--$0.84$, for predicting optimization success, and about $14\%$
-of low-RMSD guesses fail nonetheless.
+curve (AUC), $0.77$--$0.84$, for predicting optimization success, and $18\%$ of
+guesses within $0.28$~\AA\ of the reference fail nonetheless.
 
 Many of those ``failures'' are not failures at all: $38\%$ converge to a genuine
 but different first-order saddle point, and $77\%$ of those lie lower in energy
@@ -190,6 +190,7 @@ displacement $\lvert r^{P}-r^{R}\rvert$ (parameter-free) & \textbf{0.839} \\
 \end{table}
 
 \subsection{Predictors}
+\label{sec:guesses}
 Two geometry-only predictors generated the guesses whose fate we studied:
 midpoint, the linear interpolation $\tfrac{1}{2}(D^{R}+D^{P})$ of the
 reactant and product distance matrices, embedded in three dimensions by classical
@@ -227,6 +228,7 @@ perfect separation. The measure needs no decision threshold and is unchanged by
 any monotone rescaling of the metric.
 
 \subsection{Controlled displacement experiment}
+\label{sec:methods-ladder}
 To test whether a metric's ability to separate success from failure is limited by
 the metric itself or by the surface, we constructed guesses whose deviation was
 fixed by design rather than observed. Each reference saddle was re-optimized at the GFN2-xTB~\cite{Bannwarth2019}
@@ -243,9 +245,15 @@ than its nominal length. The step length was then solved by bisection so that th
 RMSD equaled the target; the achieved value was stored for every trial and checked
 during analysis. The saddle search was repeated from each displaced structure and
 counted as a return if it converged within $0.3$~\AA\ of the original xTB saddle.
-The displacement experiment used $187$ (Transition1x) and $186$ (Reaction-QM)
-reactions, about $3\,200$ trials per database, at GFN2-xTB throughout so that no reference-level
-inconsistency entered. Because the isotropic direction was drawn at random, its
+The experiment was attempted on all $200$ reactions of each database. A reaction
+entered the analysis only if its reference saddle relaxed to a converged GFN2-xTB
+saddle carrying exactly one negative curvature and yielding a usable set of
+vibrational modes; $187$ of $200$ Transition1x and $186$ of $200$ Reaction-QM
+reactions met this condition, the remainder failing the xTB saddle search, the
+Hessian, or the one-imaginary-mode test. Each surviving reaction contributed
+$16$ trials -- four displacements ($0.2$, $0.4$, $0.6$, $0.8$~\AA) along each of
+the four directions -- for $2\,992$ and $2\,976$ trials respectively, at GFN2-xTB
+throughout so that no reference-level inconsistency entered. Because the isotropic direction was drawn at random, its
 seed was derived from the reaction identifier rather than from the process, so
 that splitting the batch across cluster jobs could not alter the result.
 
@@ -301,9 +309,10 @@ Table~\ref{tab:auc} reports how well each measure predicts optimization failure
 slightly lower ($0.769$). Every measure -- including the perpendicular
 reaction-coordinate error, which carries essentially all of RMSD's signal while
 the parallel component (AUC $0.658$) carries almost none -- lands in a narrow
-band around AUC $0.80$. The distributions overlap heavily: about $14\%$ of low-RMSD
-guesses fail and successes reach large RMSD, so no distance threshold cleanly
-separates the classes (Fig.~\ref{fig:dist}).
+band around AUC $0.80$. The distributions overlap heavily: $30$ of the $171$
+guesses within $0.28$~\AA\ of the reference fail ($18\%$, over both batches) and
+successes reach large RMSD, so no distance threshold cleanly separates the
+classes (Fig.~\ref{fig:dist}).
 
 Two controls sharpen the point. The un-normalized root-square deviation (RMSD
 $\times\sqrt{N}$) gives AUC $0.808$, statistically indistinguishable from RMSD:
@@ -419,18 +428,22 @@ Deployable random forest & 0.791 & \textbf{no} \\
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/raincloud_by_outcome.png}
 \caption{Rainclouds (half-violin, box with white median, and per-guess points)
-comparing the converged ($n=216$) and ``failed'' ($n=184$) classes for three
-representative guess-quality measures: (a) Kabsch RMSD, (b) D-MAE, and (c) the
-deployable GFN2-xTB rms force on the guess (failed $n=183$). Class medians shift
-in the expected direction while the distributions overlap across most of their
-range.}
+comparing the successful ($n=216$) and failed ($n=184$) classes of the $400$
+batch-2 guesses, for three representative guess-quality measures: (a) Kabsch
+RMSD, (b) D-MAE, and (c) the deployable GFN2-xTB rms force on the guess, for
+which one failed guess lacks an xTB single point ($n=183$). The split is on
+\textit{success} as defined in Section~\ref{sec:ceiling}, not on mere
+convergence. Values beyond the axis range are drawn at the right-hand
+limit. Class medians shift in the expected direction while the distributions
+overlap across most of their range.}
 \label{fig:dist}
 \end{figure}
 
 \subsection{Alternative saddles among the ``failures''}
 \label{sec:alt}
-Of $239$ failures, $142$ ($59\%$) did not converge, $92$ ($38\%$) converged to a
-first-order saddle other than the reference, and $5$ collapsed to a minimum. For the
+Of the $239$ failures among the $520$ guesses of both batches, $142$ ($59\%$) did
+not converge, $92$ ($38\%$) converged to a first-order saddle other than the
+reference, and $5$ collapsed to a minimum. For the
 alternative saddles, the median energy difference from the reference is
 $131$~kJ\,mol$^{-1}$, and $77\%$ are lower in energy; only $13\%$ lie within
 $4.8$~kJ\,mol$^{-1}$ of the
@@ -488,9 +501,9 @@ guesses, so the potential cost saving is large -- yet not predictable from
 Cartesian similarity.
 
 Restricting to low-RMSD guesses ($<0.28$~\AA) -- those that geometric similarity
-alone would deem good enough -- and re-testing the reactant- and product-derived
-features of
-Section~\ref{sec:ceiling}, no feature separates the $30$ failures from the $140$
+alone would deem good enough, $171$ of the $520$ guesses of both batches -- and
+re-testing the reactant- and product-derived features of
+Section~\ref{sec:ceiling}, no feature separates the $30$ failures from the $141$
 successes (all AUC $0.5$--$0.6$).
 Reaction-amplitude features that appear predictive over all guesses (AUC
 $0.65$--$0.68$) collapse to noise once RMSD is held fixed -- they predict failure
@@ -524,20 +537,22 @@ the statistic becomes meaningless.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/ladder.png}
-\caption{Return rates to the original saddle from controlled displacements
-($187$ and $186$
-reactions, ${\sim}3\,200$ trials per database). Points with the same displacement
-from the reference saddle differ only in the direction of that displacement, so
-the vertical spread is due to direction alone. Error bars are binomial standard
-errors.}
+\caption{Return rates to the original saddle from controlled displacements, for
+(a) Transition1x ($187$ reactions, $2\,992$ trials) and (b) Reaction-QM ($186$
+reactions, $2\,976$ trials) -- the reactions of each $200$-reaction batch whose
+reference saddle relaxed to a genuine GFN2-xTB saddle
+(Section~\ref{sec:methods-ladder}), each contributing $16$ trials. Points with
+the same displacement from the reference saddle differ only in the direction of
+that displacement, so the vertical spread is due to direction alone. Error bars
+are binomial standard errors.}
 \label{fig:ladder}
 \end{figure}
 
 At a fixed displacement of $0.20$~\AA, the return rate ranges from $33\%$ along
 the reaction mode to $98\%$ along the softest vibration on Transition1x, and from
-$22\%$ to $96\%$ on Reaction-QM (Fig.~\ref{fig:ladder}); direction-independence
+$23\%$ to $96\%$ on Reaction-QM (Fig.~\ref{fig:ladder}); direction-independence
 is rejected at every displacement in both databases ($\chi^2$ on the
-$4\times2$ table of direction against return, $3$ d.o.f., $p<10^{-16}$
+$4\times2$ table of direction against return, $3$ d.o.f., $p<10^{-14}$
 throughout).
 The ordering is physically sensible and identical across the two databases: the
 reaction mode is the unstable direction and leaves the basin fastest, while the
@@ -551,8 +566,8 @@ no measure built on distance alone can.
 
 Holding direction fixed as well recovers about $0.06$ in AUC. Pooled over
 directions, the AUC for displacement
-predicting failure to return is $0.770$ (Transition1x) and $0.757$
-(Reaction-QM); restricted to a single direction it rises to $0.828$ and $0.822$.
+predicting failure to return is $0.775$ (Transition1x) and $0.757$
+(Reaction-QM); restricted to a single direction it rises to $0.831$ and $0.823$.
 Direction-blindness is thus a real
 but modest penalty, and far from the whole gap to a perfect predictor. The
 residue is the point: even with the distance controlled to $10^{-3}$~\AA, the
@@ -571,15 +586,16 @@ reaction mode ($p=3\times10^{-8}$ and $8\times10^{-14}$ at the two
 displacements).
 
 The two levels agree quantitatively as well. Compared like for like -- the same
-$40$ reactions, the same two displacements -- their AUCs differ by at most
-$0.01$: pooled over directions, $0.651$ at r$^2$SCAN-3c against $0.665$ at
-GFN2-xTB; within a fixed direction, $0.711$ against $0.722$. The semi-empirical
+two displacements, and the $36$ of these $40$ reactions that also cleared the
+xTB screen of Section~\ref{sec:methods-ladder} -- their AUCs differ by at most
+$0.02$: pooled over directions, $0.651$ at r$^2$SCAN-3c against $0.667$ at
+GFN2-xTB; within a fixed direction, $0.711$ against $0.723$. The semi-empirical
 surface is therefore a faithful proxy here, and the larger xTB sample can carry
 the statistical weight. These absolute values are lower than those quoted above,
 but only because the comparison rests on two displacements instead of four. That
 is the range effect of Section~\ref{sec:rqm} again: restricting the same xTB data
-to those two displacements moves the within-direction AUC from $0.828$ to
-$0.702$.
+to those two displacements moves the within-direction AUC from $0.831$ to
+$0.709$.
 
 Two independent routes therefore arrive at the same number. This is the
 mechanism. The ceiling is not an artifact of metric design, nor merely of RMSD's
@@ -627,16 +643,24 @@ as a metric, not on which of the two makes the chemistry harder.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.62\textwidth]{../bench/plots/generalization.png}
-\caption{Generalization to Reaction-QM. (a) The predictors degrade sharply out of
+\caption{Generalization to Reaction-QM. Both databases are represented by the
+same $400$ guesses per database as everywhere else in this work -- two
+interpolation-based guesses (linear midpoint and bond-order interpolation,
+Section~\ref{sec:guesses}) for each of $200$ reactions, optimized at r$^2$SCAN-3c
+under the same success criterion. (a) The predictors degrade sharply out of
 distribution; the shaded band is the Transition1x interquartile range of guess
 deviation, used to match the two datasets. (b) Downstream success against guess
 deviation: at every matched deviation Reaction-QM succeeds less often, so a
-threshold calibrated on one database does not transfer to the other. (c) The
-apparent improvement in discrimination on Reaction-QM (AUC $0.920$) is an artifact of
-its much wider deviation range; restricted to the matched band it falls to
-AUC $0.610$, statistically indistinguishable from both the Transition1x value and from
-chance. Error bars are binomial standard errors in (b) and $95\%$ bootstrap
-confidence intervals in (c). All values in (c) are AUCs.}
+threshold calibrated on one database does not transfer to the other. (c) Area
+under the receiver-operating-characteristic curve (AUC) for guess deviation
+predicting failure -- the probability that a randomly chosen failed guess is
+assigned a larger deviation than a randomly chosen successful one, so that $0.5$
+is chance (Section~\ref{sec:metrics}). The apparent improvement in discrimination
+on Reaction-QM (AUC $0.920$) is an artifact of its much wider deviation range;
+restricted to the matched band it falls to AUC $0.610$, statistically
+indistinguishable from both the Transition1x value and from chance. Error bars
+are binomial standard errors in (b) and $95\%$ bootstrap confidence intervals in
+(c).}
 \label{fig:generalization}
 \end{figure}
 
@@ -739,21 +763,28 @@ However, assigning the remaining endpoints to a chemical species proved
 not robust. Four reasonable identity criteria -- covalent adjacency
 graph, InChI~\cite{Heller2015}, graph isomorphism as implemented in RMG (as used by the Automated Rate Calculator,
 ARC~\cite{ARC}), and canonical SMILES~\cite{Weininger1988} -- returned between
-$6\%$ and $91\%$ ``same reaction'' on the identical set of endpoints. Manual
-inspection identified three specific algorithmic blind spots, all aggravated by
-the open-shell character of many Transition1x species. First, \emph{radical-center
-and multiplicity assignment} is not consistent across two geometries of the same
-molecule: perception routines placed unpaired electrons on different atoms and
-returned different multiplicities for a species and its own relaxed copy. Second,
-resonance-structure selection is arbitrary -- a delocalized radical is
-represented by one of several equivalent Kekul\'e/resonance forms, and graph
-isomorphism then declares two forms of the same species distinct. Third,
-path directionality is lost: an IRC endpoint may relax to a conformer or
-tautomer of the reactant/product that the reference minimum does not match, and
-the two IRC branches occasionally invert, so reactant and product labels swap.
-The net effect is that a single species is repeatedly split into spurious
-``intermediates'' (many carried a SMILES string identical to the product yet were
-flagged distinct; Fig.~\ref{fig:blind}).
+$6\%$ and $91\%$ ``same reaction'' on the identical set of endpoints. The spread
+is not noise between near-equivalent tests. Holding the perception step fixed --
+the same reactive-bond graph on the same relaxed endpoints -- and varying only
+what is demanded of it reproduces most of it: requiring the two endpoints to
+reproduce the reference reactant and product \emph{as a pair} scores $6\%$, while
+asking only whether each endpoint resembles \emph{either} of them scores $88\%$.
+The criterion, not the chemistry, sets the answer.
+
+Manual inspection identified three specific algorithmic blind spots behind that
+sensitivity, all aggravated by the open-shell character of many Transition1x
+species. First, \emph{radical-center and multiplicity assignment} is not
+consistent across two geometries of the same molecule: perception routines placed
+unpaired electrons on different atoms and returned different multiplicities for a
+species and its own relaxed copy. Second, \emph{resonance-structure selection} is
+arbitrary -- a delocalized radical is represented by one of several equivalent
+Kekul\'e/resonance forms, and graph isomorphism over Lewis structures then
+declares two forms of the same species distinct, while canonical SMILES and InChI
+do not (Fig.~\ref{fig:blind}). Third, \emph{path directionality} is lost: an IRC
+endpoint may relax to a conformer or tautomer of the reactant/product that the
+reference minimum does not match, and the two IRC branches occasionally invert,
+so reactant and product labels swap. The net effect is that a single species is
+repeatedly split into spurious ``intermediates''.
 
 We therefore cannot state with
 confidence whether the
@@ -769,15 +800,16 @@ usually lower in energy, and are penalized by a reference-matching metric.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\linewidth]{../bench/plots/blind_spots.png}
-\caption{Three algorithmic blind spots that make automated species perception
-inconsistent for open-shell IRC endpoints, each illustrated by a pair that is
-chemically one species yet is repeatedly assigned two identities. \emph{Left/right
-within each row}: (top) resonance ambiguity, a delocalized radical represented by
-two equivalent forms; (middle) radical-site migration, the unpaired electron
-placed on a different atom for two geometries of the same molecule; (bottom)
-path-direction inversion, an IRC whose two branches relax to reactant/product
-labels that swap. These failures underlie the $6\%$--$91\%$ spread across identity
-criteria in Section~\ref{sec:irc}.}
+\caption{Resonance-form selection, the blind spot that is criterion-dependent by
+construction. Both structures are the allyl radical, perceived from two
+geometries of the same molecule; the atom numbering is common to the two panels,
+and only the placement of the double bond -- and hence of the unpaired
+electron -- differs. Graph isomorphism over the perceived Lewis structure calls
+them two species unless resonance forms are generated first, whereas canonical
+SMILES ($\mathrm{[CH_2]C{=}C}$) and InChI
+(\texttt{InChI=1S/C3H5/c1-3-2/h3H,1-2H2}) are identical for both, since each
+canonicalizes the choice away. Criterion-dependence of this kind is what
+produces the spread in Section~\ref{sec:irc}.}
 \label{fig:blind}
 \end{figure}
 
@@ -858,15 +890,20 @@ a single or reference-free-selected draw rather than an oracle best-of-$N$. That
 determining connectivity is itself hard for open-shell reaction networks only
 strengthens the case that geometric distance is the wrong yardstick.
 
-\section*{Data and code}
+\section*{Data and Software Availability}
 \begin{sloppypar}
-Analysis scripts (\texttt{bench/}) and reduced datasets (\texttt{server/}) are
-provided; DFT jobs were generated by \texttt{make\_orca\_jobs.py},
-\texttt{make\_orca\_ladder.py} (controlled displacement) and
-\texttt{make\_orca\_rits.py} (generative guesses), and reduced on the cluster to
-compact JSON by \texttt{reduce\_batch.py} / \texttt{reduce\_ladder.py}. RitS
-guesses and reference-free selectors are produced by \texttt{run\_rits.py} and
-\texttt{rits\_selectors.py}.
+All data and software needed to reproduce this work are openly available. The
+archive contains the reaction sets drawn from Transition1x and Reaction-QM; the
+guess geometries produced by each predictor; the reduced results of every
+r$^2$SCAN-3c optimization, frequency and IRC calculation, of the GFN2-xTB
+controlled-displacement experiment, and of the RitS samples, each as compact JSON
+keyed by reaction and predictor; and the analysis and plotting code that turns
+those files into every number, table and figure in this article, including the
+job-generation scripts used to run the DFT calculations on the cluster. Software
+used and not redistributed here is available from its authors: ORCA~6.0.0,
+GFN2-xTB through \texttt{tblite}, Sella, RMG-Py, RDKit and RitS. The archive is
+deposited at Zenodo under DOI~\texttt{[DOI to be assigned on acceptance]} and
+mirrored at \url{https://github.com/DanaResearchGroup/ts-metrics-paper}.
 \end{sloppypar}
 
 \appendix
