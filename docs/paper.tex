@@ -385,7 +385,7 @@ potential-energy surface, not by the prediction.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\textwidth]{../bench/plots/auc_ceiling.png}
-\caption{None of the guess-based measures predict optimization convergence beyond
+\caption{None of the guess-based measures predict optimization success beyond
 AUC $\approx 0.84$ ($n=400$). Oracle measures (blue) require the reference
 TS; deployable descriptors (gold) require only the guess and the
 reactant/product; the random-forest ensemble (red) combines all eight geometric
@@ -444,7 +444,8 @@ overlap across most of their range.}
 Of the $239$ failures among the $520$ guesses of both batches, $142$ ($59\%$) did
 not converge, $92$ ($38\%$) converged to a first-order saddle other than the
 reference, and $5$ collapsed to a minimum. For the
-alternative saddles, the median energy difference from the reference is
+alternative saddles, the median magnitude of the energy difference from the
+reference, $\lvert E_{\mathrm{alt}}-E_{\mathrm{ref}}\rvert$, is
 $131$~kJ\,mol$^{-1}$, and $77\%$ are lower in energy; only $13\%$ lie within
 $4.8$~kJ\,mol$^{-1}$ of the
 reference (symmetry-equivalent artifacts). These are bare r$^2$SCAN-3c electronic
