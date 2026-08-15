@@ -53,8 +53,8 @@ a parameter-free displacement-weighted RMSD, already operates at that limit.
 The conclusions replicate on a second, chemically broader database, and on a
 state-of-the-art flow-matching generator, where oracle best-of-$N$ selection
 roughly triples the deployable single-draw success rate yet no reference-free
-score recovers that gain, so reported best-of-$N$ figures overstate what a user
-obtains. Two consequences follow. A cheap GFN2-xTB force descriptor evaluated on
+score we tried picks the good sample, so reported best-of-$N$ figures overstate
+what a user obtains. Two consequences follow. A cheap GFN2-xTB force descriptor evaluated on
 the guess predicts convergence about as well as oracle RMSD and requires no
 reference structure -- useful precisely because the ceiling leaves little room
 for a better one. And the field needs a change of yardstick: judging a predicted TS by
@@ -609,6 +609,14 @@ guess-based measures examined here accesses. Metrics saturate near AUC $0.83$
 because that is where the information these descriptors extract from a guess
 geometry is exhausted, and the best of them already operates at that limit.
 
+Observations in this work cluster by reaction: each reaction contributes two
+guesses to the $400$-guess analysis and $16$ trials to the displacement
+experiment. The binomial standard errors and the contingency test reported above
+treat trials as independent and are therefore optimistic. The direction effect is
+far too large to be produced by that dependence, but the smaller contrasts -- in
+particular the $0.033$ gap in AUC between displacement-weighted and plain
+RMSD -- should be read as provisional until reaction-level resampling is applied.
+
 A corollary bears on how synthetic guesses should be built. Isotropic Gaussian
 noise, the natural way to manufacture guesses of a prescribed quality, does not
 behave like a typical direction: it tracks the reaction mode arm, the
@@ -725,14 +733,19 @@ at prediction time.
 The obvious question is whether a reference-free score can recover it. We
 tried three: the consensus (medoid) sample, which requires no electronic
 structure; the lowest GFN2-xTB force, which is the deployable descriptor this
-paper recommends elsewhere; and the lowest GFN2-xTB energy. None works. Across
-both databases the sample each selects sits at a mean rank of $4.5$--$5.7$ among
+paper recommends elsewhere; and the lowest GFN2-xTB energy. None of the three selects a sample closer to the
+reference than chance: across
+both databases the sample each picks sits at a mean rank of $4.5$--$5.7$ among
 the ten (Fig.~\ref{fig:generative}b), against a chance expectation of $5.5$ and
 the oracle's $1.0$; the consensus sample is marginally better than chance and the
-energy and force selectors are not. The near-threefold best-of-$N$ advantage is
-therefore real but structurally inaccessible: it lives in knowing which sample is
-closest to an answer one does not have, and no cheap proxy stands in for that
-knowledge. The information ceiling of Section~\ref{sec:ceiling} thus reappears for
+energy and force selectors are not. We did not optimize the selected samples, so
+this establishes that the selectors cannot reproduce the oracle's proximity to
+the reference, not that they cannot reproduce its downstream success -- a
+distinction this paper's own argument demands, and one that requires DFT
+optimizations. What can be said is that the near-threefold best-of-$N$ advantage
+lives in knowing which sample is
+closest to an answer one does not have, and that no cheap proxy we tried stands
+in for that knowledge. The information ceiling of Section~\ref{sec:ceiling} thus reappears for
 a modern generator in a sharper form -- as a selection problem -- and it cautions
 that best-of-$N$ scores in the generative-TS literature overstate deployable
 performance by roughly a factor of three.
@@ -747,7 +760,8 @@ wide range; the oracle best (blue) sits far below the single draw (orange).
 ($1=$ best); every deployable selector lands near the chance line, only the
 oracle (min RMSD to the reference) reaches $1$. (c) Optimized at r$^2$SCAN-3c, the
 oracle best-of-ten roughly triples the deployable single-draw success on both
-databases -- a gap no reference-free selector closes.}
+databases; the reference-free selections were not optimized and do not appear
+here.}
 \label{fig:generative}
 \end{figure}
 
@@ -875,8 +889,8 @@ similarity is no more predictive there than on the database the conclusion was
 drawn from, and the mapping from deviation to outcome does not transfer between
 the two. The same limit constrains a state-of-the-art generative model: its
 oracle best-of-$N$ score, roughly triple its deployable single-draw success,
-cannot be recovered by any reference-free selection rule, so reported best-of-$N$
-figures do not reflect what a user obtains. TS prediction should be
+rests on a proximity to the reference that no reference-free rule we tried can
+identify, so reported best-of-$N$ figures do not reflect what a user obtains. TS prediction should be
 benchmarked by surface behavior -- convergence, and where determinable,
 connectivity -- not by Cartesian distance, and generative models by the quality of
 a single or reference-free-selected draw rather than an oracle best-of-$N$. That
