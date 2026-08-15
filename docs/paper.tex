@@ -780,7 +780,8 @@ species and its own relaxed copy. Second, \emph{resonance-structure selection} i
 arbitrary -- a delocalized radical is represented by one of several equivalent
 Kekul\'e/resonance forms, and graph isomorphism over Lewis structures then
 declares two forms of the same species distinct, while canonical SMILES and InChI
-do not (Fig.~\ref{fig:blind}). Third, \emph{path directionality} is lost: an IRC
+do not, unless resonance forms are generated and filtered
+first~\cite{GrinbergDana2019}. Third, \emph{path directionality} is lost: an IRC
 endpoint may relax to a conformer or tautomer of the reactant/product that the
 reference minimum does not match, and the two IRC branches occasionally invert,
 so reactant and product labels swap. The net effect is that a single species is
@@ -796,22 +797,6 @@ automated structure perception, and a robust, perception-independent connectivit
 criterion is an open problem. What we can state solidly, the foregoing
 notwithstanding, rests on energetics alone: the alternative saddles exist, are
 usually lower in energy, and are penalized by a reference-matching metric.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{../bench/plots/blind_spots.png}
-\caption{Resonance-form selection, the blind spot that is criterion-dependent by
-construction. Both structures are the allyl radical, perceived from two
-geometries of the same molecule; the atom numbering is common to the two panels,
-and only the placement of the double bond -- and hence of the unpaired
-electron -- differs. Graph isomorphism over the perceived Lewis structure calls
-them two species unless resonance forms are generated first, whereas canonical
-SMILES ($\mathrm{[CH_2]C{=}C}$) and InChI
-(\texttt{InChI=1S/C3H5/c1-3-2/h3H,1-2H2}) are identical for both, since each
-canonicalizes the choice away. Criterion-dependence of this kind is what
-produces the spread in Section~\ref{sec:irc}.}
-\label{fig:blind}
-\end{figure}
 
 \section{Discussion}
 
