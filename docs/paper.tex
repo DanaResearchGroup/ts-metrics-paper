@@ -38,8 +38,9 @@ guesses within $0.28$~\AA\ of the reference fail nonetheless.
 
 Many of those ``failures'' are not failures at all: $38\%$ converge to a genuine
 but different first-order saddle point, and $77\%$ of those lie lower in energy
-than the reference (median difference $\sim 131$~kJ\,mol$^{-1}$) -- legitimate
-alternative TSs that a reference-matching metric penalizes as errors, though
+than the reference (median difference $\sim 131$~kJ\,mol$^{-1}$) -- genuine
+alternative first-order saddles that a reference-matching metric penalizes as
+errors, though
 current automated structure perception cannot reliably tell which reaction each
 one belongs to. A controlled experiment identifies the cause. Displacing each
 reference saddle by a prescribed distance along different directions changes the
@@ -55,8 +56,8 @@ roughly triples the deployable single-draw success rate yet no reference-free
 score recovers that gain, so reported best-of-$N$ figures overstate what a user
 obtains. Two consequences follow. A cheap GFN2-xTB force descriptor evaluated on
 the guess predicts convergence about as well as oracle RMSD and requires no
-reference structure -- useful precisely because the ceiling means nothing better
-is available. And the field needs a change of yardstick: judging a predicted TS by
+reference structure -- useful precisely because the ceiling leaves little room
+for a better one. And the field needs a change of yardstick: judging a predicted TS by
 whether it optimizes to any valid reactant-to-product saddle rather than by its
 RMSD to a single reference, and, for stochastic generators, reporting the quality
 of a single draw or a reference-free-selected one rather than an oracle
@@ -378,9 +379,9 @@ reaches AUC $0.829$, no higher than the single displacement-weighted RMSD, and
 adding the deployable xTB force does not improve on it either. Every guess-based
 measure we tried -- geometric or semi-empirical, single or ensembled, oracle or
 deployable -- lands in a narrow band that ceilings near AUC $0.84$
-(Fig.~\ref{fig:ceiling}). Convergence carries an irreducible unpredictability
-from any function of the guess, because the outcome is fixed by the
-potential-energy surface, not by the prediction.
+(Fig.~\ref{fig:ceiling}). None of the guess-based descriptors we examined,
+whether single, weighted, or ensembled, separates the classes further; the
+residual variation tracks the potential-energy surface rather than the guess.
 
 \begin{figure}[htbp]
 \centering
@@ -457,7 +458,7 @@ is a different stationary point, usually the lower one -- and the gaps involved 
 an order of magnitude larger than the errors such a method is expected to make.
 A third of what the metric calls
 failure is therefore the optimizer locating a genuine, usually more stable,
-TS that the reference database simply does not contain. This is
+first-order saddle that the reference database simply does not contain. This is
 consistent with reports from the generative-model literature itself: TSDiff~\cite{TSDiff}, for
 instance, was observed to sample TSs with lower barrier
 heights than the reference database, which its RMSD-based evaluation
@@ -602,11 +603,11 @@ Two independent routes therefore arrive at the same number. This is the
 mechanism. The ceiling is not an artifact of metric design, nor merely of RMSD's
 blindness to direction, nor of noise in the predictors: it survives an experiment
 in which all three are eliminated or controlled by construction. What remains is
-irreducible variation between reactions in how large a basin their saddle
-possesses -- a property of the potential energy surface that no measurement of
-the guess geometry can access. Metrics saturate near AUC $0.83$ because that is where
-the information in a guess geometry runs out, and the best of them already
-operates at that limit.
+variation between reactions in how large a basin their saddle
+possesses, a property of the potential energy surface that none of the
+guess-based measures examined here accesses. Metrics saturate near AUC $0.83$
+because that is where the information these descriptors extract from a guess
+geometry is exhausted, and the best of them already operates at that limit.
 
 A corollary bears on how synthetic guesses should be built. Isotropic Gaussian
 noise, the natural way to manufacture guesses of a prescribed quality, does not
@@ -812,16 +813,16 @@ to lower-energy saddles ($77\%$ of the alternative-saddle cases) absent from
 Transition1x, so a geometrically ``wrong'' prediction frequently reaches a more
 stable TS. Benchmarking against a single reference therefore rewards a model for
 reproducing the database's particular saddle choice rather than for locating a
-valid, possibly better, TS -- even though, for these open-shell endpoints, we
+valid, possibly lower-energy, saddle -- even though, for these open-shell endpoints, we
 cannot robustly determine whether each lower saddle belongs to the same reaction,
 a stepwise variant, or a different one (Section~\ref{sec:irc}).
 
 The mechanism lies in the optimizer. A quasi-Newton saddle-point optimizer only
 ever sees the local Hessian; from a
 given guess it walks to whichever saddle the local curvature indicates, which need
-not be the closest in RMSD nor the reference. This is why no function of the guess
-geometry predicts convergence beyond AUC $\approx 0.84$: the outcome is fixed by
-the surface, not the guess. The controlled-displacement experiment makes this
+not be the closest in RMSD nor the reference. This is why none of the guess
+geometry functions we tested predicts success beyond AUC $\approx 0.84$: the
+outcome is governed by the surface more than by the guess. The controlled-displacement experiment makes this
 concrete -- direction at fixed distance swings the outcome from $33\%$ to $98\%$,
 and even the direction-controlled ceiling matches the best real metric -- so the
 saturation is an information limit, not a modeling artifact.
@@ -866,8 +867,9 @@ $98\%$ depending only on the direction of displacement, so distance cannot
 determine convergence; yet once direction is also controlled the ceiling
 persists at AUC $\approx 0.83$, and the effect reproduces at r$^2$SCAN-3c. The
 saturation is therefore not a deficiency of
-any particular metric but a limit on what guess geometry can express: reactions
-differ irreducibly in the size of the basin around their saddle. This holds on a second, chemically
+any particular metric but a limit on what these measures extract from a guess
+geometry: reactions differ widely in the size of the basin around their saddle,
+and none of the descriptors examined here captures that difference. This holds on a second, chemically
 broader database: once the comparison is matched for guess quality, geometric
 similarity is no more predictive there than on the database the conclusion was
 drawn from, and the mapping from deviation to outcome does not transfer between
