@@ -280,7 +280,7 @@ minimum-energy descent path in both directions. IRC runs frequently
 terminated before reaching a minimum, so each endpoint was relaxed briefly at
 GFN2-xTB before perception. We
 identified the two endpoints by molecular-graph perception -- covalent bond graphs
-and graph isomorphism as implemented in RMG~\cite{RMGv3,RMGv4}, following the structure-perception approach of the
+and graph isomorphism as implemented in RMG~\cite{RMGv3,RMGv4,RMGdb}, following the structure-perception approach of the
 Automated Rate Calculator (ARC)~\cite{ARC} -- restricted where possible to the
 bonds that change across the reaction so that conformational differences were
 ignored. An endpoint was labeled reactant, product, or a distinct intermediate.
@@ -785,7 +785,9 @@ first~\cite{GrinbergDana2019}. Third, \emph{path directionality} is lost: an IRC
 endpoint may relax to a conformer or tautomer of the reactant/product that the
 reference minimum does not match, and the two IRC branches occasionally invert,
 so reactant and product labels swap. The net effect is that a single species is
-repeatedly split into spurious ``intermediates''.
+repeatedly split into spurious ``intermediates'' -- the same class of artifact
+that lets automated workflows admit species which cannot
+exist~\cite{Mitnik2022}.
 
 We therefore cannot state with
 confidence whether the
@@ -836,7 +838,10 @@ bottleneck of generative models, not a quirk of RitS. Best-of-$N$ evaluation
 therefore measures the wrong quantity: it credits a model for a sample it cannot
 identify without the answer, and overstates deployable performance by about
 threefold. The figure to report is the expected quality of a single draw, or
-of a draw selected by a genuinely reference-free rule.
+of a draw selected by a genuinely reference-free rule. The distinction grows more
+consequential as these generators are handed to autonomous agents that construct
+kinetic models without a human in the loop~\cite{GrinbergDana2026b}, since such a
+pipeline has no reference against which to recognize the good draw.
 
 Four changes to evaluation practice follow. Report convergence rate and IRC
 connectivity rather than
