@@ -253,7 +253,7 @@ vibrational modes; $187$ of $200$ Transition1x and $186$ of $200$ Reaction-QM
 reactions met this condition, the remainder failing the xTB saddle search, the
 Hessian, or the one-imaginary-mode test. Each surviving reaction contributed
 $16$ trials -- four displacements ($0.2$, $0.4$, $0.6$, $0.8$~\AA) along each of
-the four directions -- for $2\,992$ and $2\,976$ trials respectively, at GFN2-xTB
+the four directions -- for $2{,}992$ and $2{,}976$ trials respectively, at GFN2-xTB
 throughout so that no reference-level inconsistency entered. Because the isotropic direction was drawn at random, its
 seed was derived from the reaction identifier rather than from the process, so
 that splitting the batch across cluster jobs could not alter the result.
@@ -540,8 +540,8 @@ the statistic becomes meaningless.
 \centering
 \includegraphics[width=0.9\textwidth]{../bench/plots/ladder.png}
 \caption{Return rates to the original saddle from controlled displacements, for
-(a) Transition1x ($187$ reactions, $2\,992$ trials) and (b) Reaction-QM ($186$
-reactions, $2\,976$ trials) -- the reactions of each $200$-reaction batch whose
+(a) Transition1x ($187$ reactions, $2{,}992$ trials) and (b) Reaction-QM ($186$
+reactions, $2{,}976$ trials) -- the reactions of each $200$-reaction batch whose
 reference saddle relaxed to a genuine GFN2-xTB saddle
 (Section~\ref{sec:methods-ladder}), each contributing $16$ trials. Points with
 the same displacement from the reference saddle differ only in the direction of
@@ -605,9 +605,10 @@ blindness to direction, nor of noise in the predictors: it survives an experimen
 in which all three are eliminated or controlled by construction. What remains is
 variation between reactions in how large a basin their saddle
 possesses, a property of the potential energy surface that none of the
-guess-based measures examined here accesses. Metrics saturate near AUC $0.83$
+guess-based measures examined here accesses. Metrics saturate near AUC $0.84$
 because that is where the information these descriptors extract from a guess
-geometry is exhausted, and the best of them already operates at that limit.
+geometry is exhausted, and the best of them -- the displacement-weighted RMSD, at
+AUC $0.839$ -- already operates at that limit.
 
 Observations in this work cluster by reaction: each reaction contributes two
 guesses to the $400$-guess analysis and $16$ trials to the displacement
